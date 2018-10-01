@@ -1,0 +1,5 @@
+function overlay_images(im1, im2)
+
+% (c) 2010-11-29, Martin Matousek
+% Last change: $Date::                            $
+%              $Revision$

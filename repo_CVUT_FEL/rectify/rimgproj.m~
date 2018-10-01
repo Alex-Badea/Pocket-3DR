@@ -1,0 +1,45 @@
+function [img2, cmin, c1, c2] = rimgproj( img1, BT, acmin, acmax )
+% RIMGPROJ      Image warping.
+%  [img2, cmin] = rimgproj( img1, H12, [cmin, cmax] )
+%  [img2, cmin] = rimgproj( img1, { T12, T21 },[ cmin, cmax] )
+
+
+% (c) 2002-05-24, Martin Matousek
+% $Date: 2005/05/27 12:11:06 $
+% $Revision: 1.4 $
+
+if( iscell( BT ) ) % { H12, H21 }
+  T12 = BT{1};
+  T21 = BT{2};
+else
+  T12 = BT;
+  T21 = inv( BT );
+end
+
+Progr = progress( 'Reprojecting' );
+
+if( nargin > 3 )
+  c1 = [];
+  c2 = [];
+  cmin = acmin;
+  cmax = acmax;
+  sz = cmax - cmin + 1;
+else
+  [cmin cmax sz c1 c2] = rbb( T12, size( img1 ) );
+end
+
+Progr = progress( sprintf( 'Reprojecting (%i x %i)', sz ) );
+
+if( sz(1) * sz(2) > 20000000 )
+  warning 'too big, skipping'
+  img2 = [];
+else
+  Progr = Progr.next( 'coordinates' );
+  [u1 v1] = rcoordproj( T21, [cmin(:) sz(:)] );
+
+  Progr = Progr.next( 'image interpolation' );
+  img2 = icub2( img1, v1, u1 );
+  Progr.done;
+end
+
+

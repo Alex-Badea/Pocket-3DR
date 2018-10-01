@@ -1,0 +1,29 @@
+%demo for GCS matching (stereo matching via growing correspondence seeds)
+
+Il = imread('Rotunda_0.png');
+Ir = imread('Rotunda_1.png');
+ 
+[D,W,x,w,K,SEEDs] = gcs(Il,Ir,[]);
+
+%RANDOM SEEDs ------------------------ (uncoment and try)
+%  l = 10;
+%  SEEDs = round([rand(l,1)*size(Il,2),rand(l,1)*size(Ir,2),rand(l,1)*size(Il,1)])
+%  pars = [];
+%  pars.tau = -inf; %to support growing 
+%  pars.max_candidates = 5; %recomended (otherwise too slow)
+%  [D,W,x,w,K] = gcs(Il,Ir,SEEDs,pars);
+%  D(W<0.7)=NaN; %remove low-correlation matches from the final result
+
+%display results ------------------------
+figure(1);
+imagesc(Il); axis image; colormap gray(256); hold on
+plot(SEEDs(:,1),SEEDs(:,3),'b+'); 
+title 'Left image'  
+
+figure(2);
+imagesc(D); axis image; colormap(jet); set(gca,'clim',[-100,100]);
+title 'Disparity map';
+
+figure(3);
+imagesc(W); axis image; colormap(jet);
+title  'Correlation map';

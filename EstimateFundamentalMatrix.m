@@ -5,7 +5,10 @@ x = cell2mat(Cx);
 x1 = x(1:2,:);
 x2 = x(3:4,:);
 
-if ~exist('algorithm', 'var') || strcmp(algorithm, '7PtAlg')
+if ~exist('algorithm', 'var') || strcmp(algorithm, 'Norm8PtAlg')
+    F = EstimateFundamentalMatrixNorm8PtAlg(x1, x2);
+    CF = {F};
+elseif strcmp(algorithm, '7PtAlg')
     Fs = EstimateFundamentalMatrix7PtAlg(x1, x2);
     if isempty(Fs)
         CF = {};
@@ -15,9 +18,6 @@ if ~exist('algorithm', 'var') || strcmp(algorithm, '7PtAlg')
             CF{i} = Fs(:,:,i);
         end
     end
-elseif strcmp(algorithm, 'Norm8PtAlg')
-    F = EstimateFundamentalMatrixNorm8PtAlg(x1, x2);
-    CF = {F};
 elseif strcmp(algorithm, '8PtAlg')
     F = EstimateFundamentalMatrix8PtAlg(x1, x2);
     CF = {F};
