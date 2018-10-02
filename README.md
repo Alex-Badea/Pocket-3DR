@@ -4,3 +4,4 @@ A MATLAB implementation of a full 3D Reconstruction pipeline using the functions
 
 <img src="https://image.ibb.co/jt6JZK/car04.jpg" width="135"> <img src="https://image.ibb.co/cT4STe/car05.jpg" width="135"> <img src="https://image.ibb.co/nFGwMz/car06.jpg" width="135"> <img src="https://image.ibb.co/eAvZ8e/car07.jpg" width="135"> <img src="https://image.ibb.co/hFPmoe/car08.jpg" width="135"> <img src="https://image.ibb.co/dnte8e/car09.jpg" width="135"> 
 ![](https://image.ibb.co/nFRXTe/untitled.jpg)
+Also, in general, 3D Reconstruction Algorithms handle non-lambertian objects pretty badly, so, in this case, a polarizing filter would have helped greatly.
