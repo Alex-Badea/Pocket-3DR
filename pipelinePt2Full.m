@@ -1,3 +1,7 @@
+if ~exist('K','var')
+    error('K not found')
+end
+
 %% Compute correspondence map
 imsDir = dir('ims/bib*.jpg');
 %imsNames = flip({imsDir.name});
@@ -12,12 +16,6 @@ if ~exist('CkeyPts','var') || ~exist('CmatchesCoords','var')
         CkeyPts{i} = EstimateImageKeypoints(Cim{i});
         CmatchesCoords{i-1,i} = EstimateKeypointCorrespondences(CkeyPts{i-1},CkeyPts{i}); 
     end
-end
-
-%% Camera calibration
-if ~exist('K','var')
-    warning('K matrix not found! Calculating...')
-    K = CalibrateCamera('calib_ims');
 end
 
 %% Direct Essential Matrix estimation
@@ -71,7 +69,7 @@ MRpj = BlockReshape(MRpj,size(M,1)/2);
 ERRS = M-MRpj;
 ERRS(:,sum(~isnan(ERRS))>4);
 ERRS(isnan(ERRS)) = 0;
-disp(['Eroare înainte de BA: ' num2str(vecnorm(ERRS)*vecnorm(ERRS)'/size(ERRS,2))]);
+disp(['Eroare ï¿½nainte de BA: ' num2str(vecnorm(ERRS)*vecnorm(ERRS)'/size(ERRS,2))]);
 %PlotSparse(CP, X)
 
 %% Bundle Adjustment
