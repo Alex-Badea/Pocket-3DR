@@ -3,9 +3,8 @@ if ~exist('K','var')
 end
 
 %% Compute correspondence map
-imsDir = dir('ims/bib*.jpg');
-%imsNames = flip({imsDir.name});
-imsNames = {'car01.jpg','car02.jpg','car03.jpg'};
+imsDir = dir('ims/bst*.jpg');
+imsNames = flip({imsDir.name});
 imsNo = length(imsNames);
 for i = 1:length(imsNames)
     Cim{i} = imread(imsNames{i});
@@ -27,7 +26,7 @@ if ~exist('CE','var')
         x1Calib = Dehomogenize(K\Homogenize(x1));
         x2Calib = Dehomogenize(K\Homogenize(x2));
         [CE{i,i+1}, CxCalibIn] = RANSAC(num2cell([x1Calib; x2Calib],1), ...
-            @EstimateEssentialMatrix, 5, @SampsonDistance, OPTIMTHRESH_5PTALG);
+            @EstimateEssentialMatrix, 5, @SampsonDistance, 1e-5);
         xCalibIn = cell2mat(CxCalibIn);
         Cx1CalibIn{i,i+1} = xCalibIn(1:2,:);
         Cx2CalibIn{i,i+1} = xCalibIn(3:4,:);
@@ -106,6 +105,15 @@ for i = 1:imsNo-1
     pars.zonegap = 10;
     pars.pm_tau = 0.95;
     D = gcs(im1Rec, im2Rec, [], pars);
+    figure('pos', [0 100 2600 300])
+    histogram(D,fix(sum(sum(~isnan(D)))/(max(max(D)) - min(min(D)))))
+    %figure('pos', [0 100 2600 300]), hist(D)
+    lb = ginput(1);
+    lb = lb(1);
+    ub = ginput(1);
+    ub = ub(1);
+    hold on, plot([lb ub],[0 0],'rx','LineWidth',2), drawnow, hold off 
+    D(D<lb | D>ub) = nan;
     mc12Rec = MatchesFromDisparity(D);
     x1Rec = mc12Rec(1:2,:);
     x2Rec = mc12Rec(3:4,:);

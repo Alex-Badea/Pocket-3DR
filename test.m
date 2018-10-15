@@ -1,7 +1,7 @@
 addpath(genpath(fileparts(which(mfilename))))
 
-im1 = imread('car08.jpg');
-im2 = imread('car09.jpg');
+im1 = imread('blc01.jpg');
+im2 = imread('blc04.jpg');
 kp1 = EstimateImageKeypoints(im1);
 kp2 = EstimateImageKeypoints(im2);
 mc12 = EstimateKeypointCorrespondences(kp1,kp2);
@@ -10,9 +10,9 @@ mc12n = [Dehomogenize(K\Homogenize(mc12(1:2,:)));
     Dehomogenize(K\Homogenize(mc12(3:4,:)))];
 load('OPTIMTHRESH_5PTALG')
 [E1,Cmc12nin] = RANSAC(num2cell(mc12n,1), @EstimateEssentialMatrix, ...
-    5, @SampsonDistance, 1e-5);
+    5, @SampsonDistance, 1e-7);
 mc12nin = cell2mat(Cmc12nin);
-mc12in = [Dehomogenize(K*Homogenize(mc12nin(1:2,:))); 
+mc12in = [Dehomogenize(K*Homogenize(mc12nin(1:2,:)));
     Dehomogenize(K*Homogenize(mc12nin(3:4,:)))];
 Cmc12in = num2cell(mc12in,1);
 disp(['Eroare rap. la adev. crt. INAINTE: ' num2str(sum(SummedEpipolarDistance...
@@ -27,26 +27,18 @@ f = @(x) sum(SummedEpipolarDistance(...
 o = optimoptions(@fminunc,'Display','iter','MaxFunctionEvaluations',Inf,...
     'StepTolerance',1e-10);
 rt = fminunc(f, [r t], o);
-E1 = Skew(rt(:,2))*rotationVectorToMatrix(rt(:,1));
+E1 = Skew(rt(:,2))*rotationVectorToMatrix(rt(:,1)); 
 %%
 mc12in = [Dehomogenize(K*Homogenize(mc12nin(1:2,:))); 
     Dehomogenize(K*Homogenize(mc12nin(3:4,:)))];
 
+figure
 PlotCorrespondences(im1,im2,mc12(1:2,:),mc12(3:4,:),...
     mc12in(1:2,:),mc12in(3:4,:));
 
-load('GROUND_TRUTH_INLIERS')
-GROUND_TRUTH_INLIERS = cell2mat(GROUND_TRUTH_INLIERS);
-figure
-PlotCorrespondences(im1,im2,mc12(1:2,:),mc12(3:4,:),...
-    GROUND_TRUTH_INLIERS(1:2,:),GROUND_TRUTH_INLIERS(3:4,:));
-
-load('GROUND_TRUTH_INLIERS')
-disp(['Eroare rap. la adev-adev: ' num2str(sum(SummedEpipolarDistance...
-    (K'\E1/K, GROUND_TRUTH_INLIERS))/length(GROUND_TRUTH_INLIERS))])
 Cmc12in = num2cell(mc12in,1);
-disp(['Eroare rap. la adev. crt.: ' num2str(sum(SummedEpipolarDistance...
-    (K'\E1/K, Cmc12in))/length(Cmc12in))])
+disp(['Eroare rap. la adev. crt.: ' num2str(sum(SummedEpipolarDistance(...
+    K'\E1/K, Cmc12in))/length(Cmc12in))])
 
 P1 = CANONICAL_POSE;
 P2 = EstimateRealPoseAndTriangulate(E1,mc12nin(1:2,:),mc12nin(3:4,:));
@@ -62,8 +54,31 @@ P2 = EstimateRealPoseAndTriangulate(E1,mc12nin(1:2,:),mc12nin(3:4,:));
     pars.window = 4;
     pars.zonegap = 10;
     pars.pm_tau = 0.95;
-    D = gcs(im1r, im2r, [], pars);
+    D = gcs(im1r, im2r, [], pars);   
+    figure('pos', [0 100 2600 300])
+    histogram(D,fix(sum(sum(~isnan(D)))/(max(max(D)) - min(min(D)))))
+    %figure('pos', [0 100 2600 300]), hist(D)
+    lb = ginput(1);
+    lb = lb(1);
+    ub = ginput(1);
+    ub = ub(1);
+    hold on, plot([lb ub],[0 0],'rx','LineWidth',2), drawnow, hold off 
+    D(D<lb | D>ub) = nan;
     mc12r = MatchesFromDisparity(D);
-    X1 = LinearTriangulation(KP1r, KP2r, mc12r(1:2,:), mc12r(3:4,:));
+    mc1unr = [fix(Dehomogenize(H1\Homogenize(mc12r(1:2,:))));
+        nan(1,size(mc12r,2))];
+    COLOR_VEC_ = bsxfun(@(x,dummy) ...
+        double(permute(im1(x(2),x(1),:),[3 2 1])), mc1unr, 1:size(mc12r,2));
+    X1 = LinearTriangulation(KP1r, KP2r, mc12r(1:2,:), mc12r(3:4 ,:));
+    
+figure
+PlotCorrespondences(im1r,im2r,mc12r(1:2,1:100:end),mc12r(3:4,1:100:end))
 
-pcshow(X1')
+figure, pcshow(X1')
+    
+figure,
+set(imagesc(D),'AlphaData',~isnan(D)),colormap(jet),colorbar
+
+figure('pos', [0 500 2600 300]), histogram(D,fix(sum(sum(~isnan(D)))/100))
+
+MAKE_PLY_('test.ply',X1,COLOR_VEC_)
