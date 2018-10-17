@@ -17,7 +17,7 @@ if ~exist('CkeyPts','var') || ~exist('CmatchesCoords','var')
     end
 end
 
-%% Direct Essential Matrix estimation
+%% Direct Essential Matrix destimation
 if ~exist('CE','var')
     load('OPTIMTHRESH_5PTALG')
     for i = 1:size(CmatchesCoords,1)

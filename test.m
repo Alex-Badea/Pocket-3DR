@@ -1,14 +1,13 @@
 addpath(genpath(fileparts(which(mfilename))))
 
-im1 = imread('blc01.jpg');
-im2 = imread('blc04.jpg');
+im1 = imread('mon01.jpg');
+im2 = imread('mon05.jpg');
 kp1 = EstimateImageKeypoints(im1);
 kp2 = EstimateImageKeypoints(im2);
 mc12 = EstimateKeypointCorrespondences(kp1,kp2);
 
 mc12n = [Dehomogenize(K\Homogenize(mc12(1:2,:))); 
     Dehomogenize(K\Homogenize(mc12(3:4,:)))];
-load('OPTIMTHRESH_5PTALG')
 [E1,Cmc12nin] = RANSAC(num2cell(mc12n,1), @EstimateEssentialMatrix, ...
     5, @SampsonDistance, 1e-7);
 mc12nin = cell2mat(Cmc12nin);
@@ -54,7 +53,7 @@ P2 = EstimateRealPoseAndTriangulate(E1,mc12nin(1:2,:),mc12nin(3:4,:));
     pars.window = 4;
     pars.zonegap = 10;
     pars.pm_tau = 0.95;
-    D = gcs(im1r, im2r, [], pars);   
+    D = gcs(im1r, im2r, [], pars);
     figure('pos', [0 100 2600 300])
     histogram(D,fix(sum(sum(~isnan(D)))/(max(max(D)) - min(min(D)))))
     %figure('pos', [0 100 2600 300]), hist(D)
