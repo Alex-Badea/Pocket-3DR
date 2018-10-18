@@ -4,6 +4,7 @@ function PlotCorrespondences( im1, im2, x1, x2, x1Inliers, x2Inliers )
 
 imBlend = imfuse(im1,im2);
 
+figure
 imshow(imBlend), drawnow, hold on
 plot([x1(1,:); x2(1,:)], [x1(2,:); x2(2,:)], 'k', 'LineWidth', 1.5), drawnow
 plot(x1(1,:), x1(2,:), 'ko', 'MarkerSize', 3, 'LineWidth', 1.5), drawnow

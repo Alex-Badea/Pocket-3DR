@@ -1,4 +1,4 @@
-function [ K ] = CalibrateCamera( calibImgDir, plotResultFlag )
+function [ K ] = CalibrateCamera( calibImgDir, plotFlag )
 %CALIBRATECAMERA Summary of this function goes here
 %   Detailed explanation goes here
 ims = imageDatastore(calibImgDir);
@@ -13,7 +13,7 @@ if size(ims.Files,1) ~= size(imPts,3)
     error('Error detecting checkerboard pattern in all images')
 end
 
-if exist('plotResultFlag','var') && plotResultFlag
+if exist('plotFlag','var') && strcmp(plotFlag, 'plotResult')
     for i = 1:size(ims.Files,1)
         figure, imshow(imread([char(64+i) '.jpg'])), hold on
         plot(imPts(:,1,i), imPts(:,2,i), 'ro');
