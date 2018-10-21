@@ -19,7 +19,6 @@ end
 
 %% Direct Essential Matrix destimation
 if ~exist('CE','var')
-    load('OPTIMTHRESH_5PTALG')
     for i = 1:size(CmatchesCoords,1)
         x1 = CmatchesCoords{i,i+1}(1:2,:);
         x2 = CmatchesCoords{i,i+1}(3:4,:);
@@ -34,6 +33,7 @@ if ~exist('CE','var')
             Dehomogenize(K*Homogenize(Cx2CalibIn{i,i+1}))];
     end
 end
+
 %% Linear Succesionwise Camera Cluster
 % A camera graph that bears the form of a single pathway passing through each
 % camera in the system in the order of their succesion in time. Each pose

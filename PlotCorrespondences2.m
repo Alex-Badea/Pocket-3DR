@@ -8,7 +8,7 @@ aux2(size(aux,1), size(aux,2)) = 0;
 aux3(size(aux,1), size(aux,2)) = 0;
 imBlend = [aux2 aux3];
 
-imshow(imBlend), hold on
+figure, imshow(imBlend), hold on
 x2(1,:) = x2(1,:) + size(im1,2);
 for i = 1:size(x1,2)
     plot([x1(1,i); x2(1,i)], [x1(2,i); x2(2,i)], 'k', 'LineWidth', 0.8,'Color',rand(1,3)), hold on
