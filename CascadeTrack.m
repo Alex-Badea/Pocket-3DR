@@ -1,4 +1,4 @@
-function [Map] = CascadeTrack(Cmatches, psorPrc)
+function [Map] = CascadeTrack(Cmatches, psorPrc, displaySizesFlag)
 %CASCADETRACK Summary of this function goes here
 %   psorPrc - Perspective Shift Occlusion Rate - chosen empirically
 if ~exist('psorPrc','var')
@@ -25,6 +25,8 @@ end
  
 % Remove trailing NaNs
 Map = Map(:, ~all(isnan(Map)));
-disp(['Estimated width: ' num2str(wth)])
-disp(['Actual width: ' num2str(size(Map,2))])
+if exist('displaySizesFlag','var') && strcmp(displaySizesFlag,'displaySizes')
+    disp(['Estimated width: ' num2str(wth)])
+    disp(['Actual width: ' num2str(size(Map,2))])
+end
 end
