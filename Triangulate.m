@@ -1,5 +1,5 @@
-function [ X ] = LinearTriangulation( P1, P2, x1, x2 )
-%LINEARTRIANGULATION Summary of this function goes here
+function [ X ] = Triangulate( P1, P2, x1, x2 )
+%TRIANGULATE Summary of this function goes here
 %   Detailed explanation goes here
 X = zeros(3, size(x1,2));
 for i = 1:size(x1,2)

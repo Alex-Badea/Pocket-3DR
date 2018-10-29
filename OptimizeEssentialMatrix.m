@@ -6,14 +6,14 @@ if ~exist('errFcn','var')
 end
 Cmc = num2cell([x1;x2], 1);
 e = packEssMat(E,x1,x2);
-f = @(e) sum(errFcn(unpackEssMat(e), Cmc)) / length(Cmc);
+f = @(e) mean(errFcn(unpackEssMat(e), Cmc));
 if exist('displayIterFlag','var') && strcmp(displayIterFlag,'displayIter')
     display = 'iter';
 else
     display = 'none'; 
 end
 o = optimoptions(@fminunc,'Display',display,'MaxFunctionEvaluations',Inf,...
-    'StepTolerance',1e-10);
+    'StepTolerance',1e-10,'OptimalityTolerance',1e-10);
 e = fminunc(f,e,o);
 E = unpackEssMat(e);
 end

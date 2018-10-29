@@ -22,14 +22,6 @@ for i = 1:n-1
     pars.zonegap = 10;
     pars.pm_tau = 0.95;
     D = gcs(im1Rec, im2Rec, [], pars);
-    figure('pos', [10 100 1300 300])
-    histogram(D,100), drawnow
-    lb = ginput(1);
-    ub = ginput(1);
-    hold on, plot([lb(1) ub(1)], [0 0], 'rx', 'LineWidth', 2), drawnow
-    hold off, close(gcf)
-    D(D<lb(1) | D>ub(1)) = nan;
-    mc12Rec = MatchesFromDisparity(D);
     
     if exist('CplotFlag','var') 
         if any(contains(CplotFlag, 'plotCorrespondences'))
@@ -44,13 +36,26 @@ for i = 1:n-1
         end
     end
     
-    CX{i} = LinearTriangulation(KP1Rec, KP2Rec, ...
+    figure('pos', [10 100 1300 300])
+    histogram(D,100), drawnow
+    lb = ginput(1);
+    ub = ginput(1);
+    hold on, plot([lb(1) ub(1)], [0 0], 'rx', 'LineWidth', 2), drawnow
+    hold off, close(gcf)
+    D(D<lb(1) | D>ub(1)) = nan;
+    mc12Rec = MatchesFromDisparity(D);
+    
+    CX{i} = Triangulate(KP1Rec, KP2Rec, ...
         mc12Rec(1:2,:), mc12Rec(3:4,:));
     
+    sz = [size(Cim{i},1) size(Cim{i},2)];
     mc1Unr = [fix(Dehomogenize(H1\Homogenize(mc12Rec(1:2,:))));
         nan(1,size(mc12Rec,2))];
     CColor{i} = bsxfun(@(x,dummy) ...
-        double(permute(Cim{i}(x(2),x(1),:),[3 2 1])), ...
+        double(permute(Cim{i}(...
+        min(x(2) + double(x(2)==0), sz(1)),...
+        min(x(1) + double(x(1)==0), sz(2)),...
+        :),[3 2 1])), ...
         mc1Unr, 1:size(mc12Rec,2));
 end
 end
