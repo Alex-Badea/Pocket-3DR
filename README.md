@@ -7,7 +7,7 @@ A MATLAB implementation of a full 3D Reconstruction pipeline using the functions
 Also, in general, 3D Reconstruction Algorithms handle non-lambertian objects pretty badly, so, in this case, a polarizing filter would have helped greatly.
 
 ```diff
-+Dense reconstruction from 2 images
--Dense reconstruction from n>2 images
--High disparity background filtering using k-means clustering
++ Dense reconstruction from 2 images
+- Dense reconstruction from n>2 images
+- High disparity background filtering using k-means clustering
 ```
