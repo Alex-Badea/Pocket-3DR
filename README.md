@@ -9,5 +9,5 @@ Also, in general, 3D Reconstruction Algorithms handle non-lambertian objects pre
 ```diff
 + Dense reconstruction from 2 images
 - Dense reconstruction from n>2 images
-- High disparity background filtering using k-means clustering
+- High disparity background filtering
 ```
