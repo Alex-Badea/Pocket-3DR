@@ -7,6 +7,7 @@ fp1 = EstimateFeaturePoints(im1);
 fp2 = EstimateFeaturePoints(im2);
 fp3 = EstimateFeaturePoints(im3);
 mc12 = MatchFeaturePoints(fp1,fp2);
+
 mc12n = [Dehomogenize(K\Homogenize(mc12(1:2,:))); 
     Dehomogenize(K\Homogenize(mc12(3:4,:)))];
 mc23 = MatchFeaturePoints(fp2,fp3);
@@ -24,5 +25,5 @@ E1 = OptimizeEssentialMatrix(E1, mc12nin(1:2,:), mc12nin(3:4,:));
 E2 = OptimizeEssentialMatrix(E2, mc23nin(1:2,:), mc23nin(3:4,:));
 %%
 P1 = CANONICAL_POSE;
-P2 = EstimateRealPoseAndTriangulate(E1,mc12nin(1:2,:),mc12nin(3:4,:),P1);
-P3 = EstimateRealPoseAndTriangulate(E2,mc23nin(1:2,:),mc23nin(3:4,:),P2);
+[P2,X12] = EstimateRealPoseAndTriangulate(E1,mc12nin(1:2,:),mc12nin(3:4,:),P1);
+[P3,X23] = EstimateRealPoseAndTriangulate(E2,mc23nin(1:2,:),mc23nin(3:4,:),P2);
