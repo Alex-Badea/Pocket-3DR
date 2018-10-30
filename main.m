@@ -1,15 +1,15 @@
 addpath(genpath(fileparts(which(mfilename))))
 
-im1 = imread('cpl01.jpg');
-im2 = imread('cpl02.jpg');
-im3 = imread('cpl03.jpg');
-kp1 = EstimateImageKeypoints(im1);
-kp2 = EstimateImageKeypoints(im2);
-kp3 = EstimateImageKeypoints(im3);
-mc12 = EstimateKeypointCorrespondences(kp1,kp2);
+im1 = imread('blc01.jpg');
+im2 = imread('blc02.jpg');
+im3 = imread('blc03.jpg');
+fp1 = EstimateFeaturePoints(im1);
+fp2 = EstimateFeaturePoints(im2);
+fp3 = EstimateFeaturePoints(im3);
+mc12 = MatchFeaturePoints(fp1,fp2);
 mc12n = [Dehomogenize(K\Homogenize(mc12(1:2,:))); 
     Dehomogenize(K\Homogenize(mc12(3:4,:)))];
-mc23 = EstimateKeypointCorrespondences(kp2,kp3);
+mc23 = MatchFeaturePoints(fp2,fp3);
 mc23n = [Dehomogenize(K\Homogenize(mc23(1:2,:))); 
     Dehomogenize(K\Homogenize(mc23(3:4,:)))]; 
 %%
