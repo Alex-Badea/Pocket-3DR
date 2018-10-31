@@ -1,6 +1,3 @@
-- new pose from p3p, not ess. mat.;
 - ess. mat. with reproj. as err. fcn., not sampson dist.;
-- when dense triangulating, keep default pose, and bring to optimal coord sys, not triangulate in optimal coord. sys.;
 - IMPLEMENT NOISE CORRECTION WITH INTERMEDIARY IMAGE
 - NEW THRESHOLD CALCULATOR FOR ESS. MAT. RANSAC WITH MINIMUM REPROJ. ERR. AFTER BUNDLE ADJUSTMENT WITH 3 IMAGES
-- background removal by match distance filtering/disparity filtering with k-means clust.
