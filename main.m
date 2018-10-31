@@ -1,8 +1,9 @@
 addpath(genpath(fileparts(which(mfilename))))
 
-im1 = imread('blc01.jpg');
-im2 = imread('blc02.jpg');
-im3 = imread('blc03.jpg');
+ds = 'fnt';
+im1 = imread([ds '01.jpg']);
+im2 = imread([ds '02.jpg']);
+im3 = imread([ds '03.jpg']);
 fp1 = EstimateFeaturePoints(im1);
 fp2 = EstimateFeaturePoints(im2);
 fp3 = EstimateFeaturePoints(im3);
@@ -27,3 +28,11 @@ E2 = OptimizeEssentialMatrix(E2, mc23nin(1:2,:), mc23nin(3:4,:));
 P1 = CANONICAL_POSE;
 [P2,X12] = EstimateRealPoseAndTriangulate(E1,mc12nin(1:2,:),mc12nin(3:4,:),P1);
 [P3,X23] = EstimateRealPoseAndTriangulate(E2,mc23nin(1:2,:),mc23nin(3:4,:),P2);
+
+PlotCorrespondences(im1,im2,mc12(1:2,:),mc12(3:4,:),...
+    Dehomogenize(K*Homogenize(mc12nin(1:2,:))),...
+    Dehomogenize(K*Homogenize(mc12nin(3:4,:))))
+
+PlotCorrespondences(im2,im3,mc23(1:2,:),mc23(3:4,:),...
+    Dehomogenize(K*Homogenize(mc23nin(1:2,:))),...
+    Dehomogenize(K*Homogenize(mc23nin(3:4,:))))
