@@ -1,4 +1,4 @@
-function [P3Optim] = OptimizePose(...
+function [P3Optim,error] = OptimizePose(...
     P1Optim, P2Optim, P3Unoptim, x1, x2, x3, displayIterFlag)
 %OPTIMIZEPOSE Summary of this function goes here
 %   Detailed explanation goes here
@@ -13,7 +13,7 @@ else
 end
 o = optimoptions(@fminunc,'Display',display,'MaxFunctionEvaluations',Inf,...
     'StepTolerance',1e-10,'OptimalityTolerance',1e-10);
-pOptim = fminunc(f,pUnoptim,o);
+[pOptim,error] = fminunc(f,pUnoptim,o);
 P3Optim = [rotationVectorToMatrix(pOptim(1:3)) [pOptim(4:5) pUnoptim(end)]'];
 end
 

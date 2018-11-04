@@ -1,4 +1,4 @@
-function [P3Optim] = OptimizeTranslationVector(...
+function [P3Optim,error] = OptimizeTranslationVector(...
     P1Optim, P2Optim, P3Unoptim, x1, x2, x3, displayIterFlag)
 %OPTIMIZETRANSLATIONVECTOR Summary of this function goes here
 %   Detailed explanation goes here
@@ -13,6 +13,6 @@ else
 end
 o = optimoptions(@fminunc,'Display',display,'MaxFunctionEvaluations',Inf,...
     'StepTolerance',1e-10,'OptimalityTolerance',1e-10);
-stOptim = fminunc(f,tUnoptim(1:2),o);
+[stOptim,error] = fminunc(f,tUnoptim(1:2),o);
 P3Optim = [R [stOptim;tUnoptim(3)]];
 end
