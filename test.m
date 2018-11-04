@@ -1,2 +1,2 @@
-im1 = imread('cks01.jpg');
+im1 = imread('csk01.jpg');
 im2 = imread('csk02.jpg');
