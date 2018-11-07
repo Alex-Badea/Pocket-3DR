@@ -1,4 +1,4 @@
-function [ CF ] = EstimateFundamentalMatrix( Cx, algorithm )
+function [ CF ] = EstimateFundamentalMatrix_( Cx, algorithm )
 %ESTIMATEFUNDAMENTALMATRIX Summary of this function goes here
 %   Detailed explanation goes here
 x = cell2mat(Cx);
