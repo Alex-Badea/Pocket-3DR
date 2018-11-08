@@ -1,6 +1,8 @@
 function [Map] = CascadeTrack(Cmatches, psorPrc, displaySizesFlag)
 %CASCADETRACK Summary of this function goes here
 %   psorPrc - Perspective Shift Occlusion Rate - chosen empirically
+%   ...because the quality of a reseach project is directly proportional to
+%   the number of fancy acronyms scattered throughout it.
 if ~exist('psorPrc','var')
     psorPrc = 100;
 end

@@ -19,7 +19,7 @@ E = unpackEssMat(e);
 end
 
 function e = packEssMat(E,x1,x2)
-P = EstimateRealPoseAndTriangulate(E,x1,x2);
+P = EstimateRealPose(E,x1,x2);
 R = P(1:3,1:3);
 t = P(:,end);
 e = [rotationMatrixToVector(R)' t];

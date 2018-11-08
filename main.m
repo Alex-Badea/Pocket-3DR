@@ -1,5 +1,5 @@
 init
-dataset = 'lov';
+dataset = 'mer';
 
 %% Reading image dataset
 disp(['Running pipeline for dataset "' dataset '" and calibration matrix '])
@@ -40,48 +40,35 @@ end
 CcorrsNormInFil = cell(1,imsNo-1);
 for i = 1:imsNo-1
     disp(['Background Filtering: pair ' num2str(i) ' of ' num2str(imsNo-1)])
-    P = EstimateRealPoseAndTriangulate(CE{i}, ...
+    P = EstimateRealPose(CE{i}, ...
         CcorrsNormIn{i}(1:2,:), CcorrsNormIn{i}(3:4,:));
     CcorrsNormInFil{i} = FilterBackgroundFromCorrs(CANONICAL_POSE, P, ...
         CcorrsNormIn{i}, 5);
-    disp('Optimizing Essential Matrix for Prime Subject...')
     CE{i} = OptimizeEssentialMatrix(CE{i}, ...
         CcorrsNormInFil{i}(1:2,:), CcorrsNormInFil{i}(3:4,:));
-    %%%%%%%%
-    PlotCorrespondencesNorm(Cim{i},Cim{i+1},K,CcorrsNormIn{i},CcorrsNormInFil{i})
 end
-'PRESS ANY KEY'
-pause
+
 %% Structure from Motion
 disp('Pose estimation: default first pair')
 CP = cell(1,imsNo);
 CP{1} = CANONICAL_POSE;
-CP{2} = EstimateRealPoseAndTriangulate(CE{1}, ...
+CP{2} = EstimateRealPose(CE{1}, ...
     CcorrsNormInFil{1}(1:2,:), CcorrsNormInFil{1}(3:4,:));
 for i = 2:imsNo-1
     disp(['Pose estimation: ' num2str(i+1) ' of ' num2str(imsNo)])
-    CP{i+1} = EstimateRealPoseAndTriangulate(CE{i}, ...
+    CP{i+1} = EstimateRealPose(CE{i}, ...
         CcorrsNormInFil{i}(1:2,:), CcorrsNormInFil{i}(3:4,:), CP{i});
     TrackedCorrs = CascadeTrack({CcorrsNormInFil{i-1}, CcorrsNormInFil{i}});
     TrackedCorrsIso = IsolateTransitiveCorrs(TrackedCorrs);
-    %%%%%%%%%%%%%%%%%
+    %%%
     disp(['trans ' num2str(size(TrackedCorrsIso,2))])
-    %%%%%%%%%%%%%%%%%%
-    [CP{i+1},error] = OptimizeTranslationVector(CP{i-1}, CP{i}, CP{i+1}, ...
+    %%%
+    CP{i+1} = OptimizeTranslationVector(CP{i-1}, CP{i}, CP{i+1}, ...
         TrackedCorrsIso(1:2,:), TrackedCorrsIso(3:4,:), TrackedCorrsIso(5:6,:));
-    [CP{i+1},error] = OptimizePose(CP{i-1}, CP{i}, CP{i+1}, ...
-        TrackedCorrsIso(1:2,:), TrackedCorrsIso(3:4,:), TrackedCorrsIso(5:6,:));
-    disp(['err ' num2str(error)])
+    % NO CAN DO, FIND A WORKAROUND
+    %CP{i+1} = OptimizePose(CP{i-1}, CP{i}, CP{i+1}, ...
+     %   TrackedCorrsIso(1:2,:), TrackedCorrsIso(3:4,:), TrackedCorrsIso(5:6,:));
 end
-
-figure
-CX = cell(1,imsNo-1);
-for i = 1:imsNo-1
-    CX{i} = Triangulate(CP{i}, CP{i+1}, ...
-        CcorrsNormInFil{i}(1:2,:), CcorrsNormInFil{i}(3:4,:));
-    pcshow(CX{i}','MarkerSize',80),hold on,pause(2)
-end
-hold off
 return
 %% Bundle Adjustment
 
@@ -110,7 +97,7 @@ for i = 1:imsNo-1
     im1Rec(im1Rec==0) = -1;
     KP1Rec = H1*K*CP{i};
     KP2Rec = H2*K*CP{i+1};
-    
+
     pars = [];
     pars.mu = -10.6;
     pars.window = 4;

@@ -1,2 +1,8 @@
-figure,pcshow(CX_{6}','MarkerSize',80)
-figure,histogram(CX_{6}(3,:), 2000)
+[CX(1),CC(1)] = RectifyAndDenseTriangulate({Cim{1},Cim{2}}, {K'\CE{1}/K},...
+    {K*CP{1},K*CP{2}},'plotCorrespondences');
+[CX(2),CC(2)] = RectifyAndDenseTriangulate({Cim{5},Cim{6}}, {K'\CE{5}/K},...
+    {K*CP{5},K*CP{6}},'plotCorrespondences');
+[CX(3),CC(3)] = RectifyAndDenseTriangulate({Cim{10},Cim{11}}, {K'\CE{10}/K},...
+    {K*CP{10},K*CP{11}},'plotCorrespondences');
+figure,pcshow([CX{1} CX{2} CX{3}]')
+MakePly('mer.ply',[CX{1} CX{2} CX{3}],[CC{1} CC{2} CC{3}])
