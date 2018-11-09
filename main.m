@@ -1,5 +1,6 @@
-init
-dataset = 'mer';
+addpath(genpath(fileparts(which(mfilename))))
+dataset = 'cpl';
+load('calib_AV_P9L_2MPIX.mat')
 
 %% Reading image dataset
 disp(['Running pipeline for dataset "' dataset '" and calibration matrix '])
@@ -63,11 +64,9 @@ for i = 2:imsNo-1
     %%%
     disp(['trans ' num2str(size(TrackedCorrsIso,2))])
     %%%
-    CP{i+1} = OptimizeTranslationVector(CP{i-1}, CP{i}, CP{i+1}, ...
+    [CP{i+1},error] = OptimizeTranslationVector(CP{i-1}, CP{i}, CP{i+1}, ...
         TrackedCorrsIso(1:2,:), TrackedCorrsIso(3:4,:), TrackedCorrsIso(5:6,:));
-    % NO CAN DO, FIND A WORKAROUND
-    %CP{i+1} = OptimizePose(CP{i-1}, CP{i}, CP{i+1}, ...
-     %   TrackedCorrsIso(1:2,:), TrackedCorrsIso(3:4,:), TrackedCorrsIso(5:6,:));
+    disp(['t.opt.err: ' num2str(error)])
 end
 return
 %% Bundle Adjustment

@@ -1,0 +1,1 @@
+- use previous scene knowledge (bounds of prime subject) to filter background from the dense cloud
