@@ -1,5 +1,5 @@
 addpath(genpath(fileparts(which(mfilename))))
-dataset = 'cpl';
+dataset = 'csk';
 load('calib_AV_P9L_2MPIX.mat')
 
 %% Reading image dataset
@@ -67,24 +67,12 @@ for i = 2:imsNo-1
     CP{i+1} = OptimizeTranslationVector(CP{i-1}, CP{i}, CP{i+1}, ...
         TrackedCorrsIso(1:2,:), TrackedCorrsIso(3:4,:), TrackedCorrsIso(5:6,:));
 end
-return
+
 %% Bundle Adjustment
-[X, CP] = BundleAdjustment(M,K,X,CP);
-
-CPExt = [nan(3,4) CP];
-Guide = (1:size(M,1)/2)'.* ~isnan(M(1:2:end,:));
-
-XExt = repmat(X,1,size(M,1)/2);
-Guide = reshape(Guide',1,numel(Guide));
-MRpj = bsxfun(@(X, camInd) K*CPExt{camInd+1}*Homogenize(X), XExt, Guide);
-MRpj = Dehomogenize(MRpj);
-MRpj = BlockReshape(MRpj,size(M,1)/2);
-ERRS = M-MRpj;
-ERRS(:,sum(~isnan(ERRS))>4);
-ERRS(isnan(ERRS)) = 0;
-disp(['Eroare dup? BA: ' num2str(vecnorm(ERRS)*vecnorm(ERRS)'/size(ERRS,2))]);
-%PlotSparse(CP, X)
-
+C = CascadeTrack(CcorrsNormInFil);
+X = TriangulateCascade(CP,C);
+CP_ = BundleAdjustment(CP,X,C);
+return
 %% Dense reconstruction
 CX = cell(1,imsNo-1);
 for i = 1:imsNo-1

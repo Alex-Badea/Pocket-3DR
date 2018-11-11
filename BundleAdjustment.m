@@ -1,4 +1,4 @@
-function [X, CP, repjErrs] = BundleAdjustment(CascadeMatches, X, CP)
+function [CP, X, repjErrs] = BundleAdjustment(CP, X, CascadeMatches)
 %BUNDLEADJUSTMENT Summary of this function goes here
 %   Detailed explanation goes here
 % Consistency checks
