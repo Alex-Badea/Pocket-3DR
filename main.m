@@ -3,8 +3,7 @@ dataset = 'cpl';
 load('calib_AV_P9L_2MPIX.mat')
 
 %% Reading image dataset
-disp(['Running pipeline for dataset "' dataset '" and calibration matrix '])
-disp(K)
+disp(['Running pipeline for dataset "' dataset '" and calibration matrix ']), disp(K)
 imsDir = dir(['ims/' dataset '*.jpg']);
 imsNames = {imsDir.name};
 imsNo = length(imsNames);
@@ -12,6 +11,7 @@ Cim = cell(1,imsNo);
 for i = 1:length(imsNames)
     Cim{i} = imread(imsNames{i});
 end
+Cim = ResizeImages(Cim, [1600 1200]);
 
 %% Computing correspondences
 CfeatPts = cell(1,imsNo);
@@ -64,13 +64,11 @@ for i = 2:imsNo-1
     %%%
     disp(['trans ' num2str(size(TrackedCorrsIso,2))])
     %%%
-    [CP{i+1},error] = OptimizeTranslationVector(CP{i-1}, CP{i}, CP{i+1}, ...
+    CP{i+1} = OptimizeTranslationVector(CP{i-1}, CP{i}, CP{i+1}, ...
         TrackedCorrsIso(1:2,:), TrackedCorrsIso(3:4,:), TrackedCorrsIso(5:6,:));
-    disp(['t.opt.err: ' num2str(error)])
 end
 return
 %% Bundle Adjustment
-
 [X, CP] = BundleAdjustment(M,K,X,CP);
 
 CPExt = [nan(3,4) CP];

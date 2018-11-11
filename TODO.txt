@@ -1,1 +1,2 @@
 - use previous scene knowledge (bounds of prime subject) to filter background from the dense cloud
+- TAKE SOME PHOTOS AND TEST THE PROGRAM!!!
