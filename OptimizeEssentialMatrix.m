@@ -1,11 +1,11 @@
-function [E] = OptimizeEssentialMatrix(E, x1, x2, errFcn, displayIterFlag)
+function [E] = OptimizeEssentialMatrix(E, corrs, errFcn, displayIterFlag)
 %OPTIMIZEESSENTIALMATRIX Summary of this function goes here
 %   Detailed explanation goes here
 if ~exist('errFcn','var')
     errFcn = @SampsonDistance;
 end
-Cmc = num2cell([x1;x2], 1);
-e = packEssMat(E,x1,x2);
+Cmc = num2cell(corrs, 1);
+e = packEssMat(E,corrs);
 f = @(e) mean(errFcn(unpackEssMat(e), Cmc));
 if exist('displayIterFlag','var') && strcmp(displayIterFlag,'displayIter')
     display = 'iter';
@@ -18,8 +18,8 @@ e = fminunc(f,e,o);
 E = unpackEssMat(e);
 end
 
-function e = packEssMat(E,x1,x2)
-P = EstimateRealPose(E,x1,x2);
+function e = packEssMat(E,corrs)
+P = EstimateRealPose(E,corrs);
 R = P(1:3,1:3);
 t = P(:,end);
 e = [rotationMatrixToVector(R)' t];

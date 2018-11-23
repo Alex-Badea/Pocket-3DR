@@ -5,7 +5,7 @@ if ~exist('binSize','var')
     binSize = 2;
 end
 
-X = Triangulate(P1, P2, corrs(1:2,:), corrs(3:4,:));
+X = Triangulate(P1, P2, corrs);
 %{
 % Filtering out negative-Z points
 i = X(3,:) >= 0;

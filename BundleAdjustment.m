@@ -16,7 +16,8 @@ cameraParams = cameraParameters('IntrinsicMatrix',eye(3));
 % MATLAB Bundle Adjustment
 [xyzRefinedPoints, refinedPoses, repjErrs] = ...
     bundleAdjustment(xyzPoints, pointTracks, cameraPoses, cameraParams, ...
-    'FixedViewIDs', [1 2], 'AbsoluteTolerance', 1e-15, 'RelativeTolerance', 1e-20);
+    ...%'FixedViewIDs', [1 2], 
+    'AbsoluteTolerance', 1e-15, 'RelativeTolerance', 1e-20);
 repjErrs = repjErrs';
 % Reverting to proprietary format
 X = xyzRefinedPoints';
