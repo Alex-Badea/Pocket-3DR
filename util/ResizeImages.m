@@ -8,11 +8,11 @@ for i = 2:length(Cim)
         error('Inconsistent sizes')
     end
 end
-if any(s(1) < resolution(2) || s(2) < resolution(1))
-    error('Cannot resize to higher resolution')
-end
 if r ~= s(2)/s(1)
     error('Inconsistent ratio')
+end
+if any(s(1) < resolution(2) || s(2) < resolution(1))
+    error('Cannot resize to higher resolution')
 end
 
 for i = 1:length(Cim)

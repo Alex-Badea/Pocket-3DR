@@ -1,5 +1,6 @@
-function [ optimalHypothesis, inliersSet, outliersSet, elapsedSteps ] = ...
-    RANSAC( inputSet, hypothesisGeneratorFcn, minSampleSize, errorFcn, threshold )
+function [ optimalHypothesis, inliersSet, outliersSet, optimHypGenSamples,...
+    elapsedSteps] = RANSAC( inputSet, hypothesisGeneratorFcn, minSampleSize,...
+    errorFcn, threshold )
 %RANSAC Computes an optimal hypothesis based on the hypothesis generator on
 %the outlier-polluted input set
 %   This method runs RANSAC adaptively by providing, with each iteration, a
@@ -33,6 +34,7 @@ bestSize = 0;
 bestHypothesis = [];
 bestInliersSet = {};
 bestOutliersSet = {};
+bestOptimHypGenSamples = [];
 
 step = 1;
 while step <= maxSteps
@@ -56,6 +58,7 @@ while step <= maxSteps
             bestHypothesis = crtHypothesis;
             bestInliersSet = inputSet(crtInliersInd);
             bestOutliersSet = inputSet(~crtInliersInd);
+            bestOptimHypGenSamples = crtSampleSet;
         end
     end
     e = 1 - crtSize/inputSize;
@@ -66,6 +69,7 @@ end
 optimalHypothesis = bestHypothesis;
 inliersSet = bestInliersSet;
 outliersSet = bestOutliersSet;
+optimHypGenSamples = bestOptimHypGenSamples;
 elapsedSteps = step;
 end
 

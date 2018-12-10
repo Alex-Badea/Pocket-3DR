@@ -1,4 +1,4 @@
-function [X, CP, repjErrs] = BundleAdjustment(CascadeMatches, X, CP)
+function [CP, X, repjErrs] = BundleAdjustment(CP, X, CascadeMatches)
 %BUNDLEADJUSTMENT Summary of this function goes here
 %   Detailed explanation goes here
 % Consistency checks
@@ -17,6 +17,7 @@ cameraParams = cameraParameters('IntrinsicMatrix',eye(3));
 [xyzRefinedPoints, refinedPoses, repjErrs] = ...
     bundleAdjustment(xyzPoints, pointTracks, cameraPoses, cameraParams, ...
     ...%'FixedViewIDs', [1 2], 
+    'FixedViewIDs', [1],...
     'AbsoluteTolerance', 1e-15, 'RelativeTolerance', 1e-20);
 repjErrs = repjErrs';
 % Reverting to proprietary format

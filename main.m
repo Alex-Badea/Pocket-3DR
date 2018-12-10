@@ -3,13 +3,21 @@ dataset = 'mer';
 load('calib_AV_X2S_4MPIX.mat')
 
 %% Reading image dataset
-disp(['Running pipeline for dataset "' dataset '" and calibration matrix ']), disp(K)
-imsDir = dir(['ims/' dataset '*.jpg']); imsDir = imsDir([2 1]);
+disp(['Running pipeline for dataset "' dataset '"'])
+disp('Calibration matrix: '), disp(K)
+if exist('d','var')
+    disp('Radial distortion parameters: '), disp(d)
+end
+
+imsDir = dir(['ims/' dataset '*.jpg']); imsDir = imsDir(1:2);
 imsNames = {imsDir.name};
 imsNo = length(imsNames);
 Cim = cell(1,imsNo);
 for i = 1:length(imsNames)
     Cim{i} = imread(imsNames{i});
+end
+if exist('d','var')
+    Cim = UndistortImages(Cim,K,d);
 end
 
 %% Computing correspondences
@@ -34,7 +42,7 @@ CE = cell(1,imsNo-1);
 for i = 1:imsNo-1
     disp(['Essential Matrix estimation: pair ' num2str(i) ' of ' num2str(imsNo-1)])
     [CE{i}, Cinliers] = RANSAC(num2cell(CcorrsNorm{i},1),...
-        @EstimateEssentialMatrix, 5, @SampsonDistance, 1e-5);
+        @EstimateEssentialMatrix, 5, @SampsonDistance, 1e-7);
     CcorrsNormIn{i} = cell2mat(Cinliers);
 end
 
@@ -46,7 +54,7 @@ for i = 1:imsNo-1
     CcorrsNormInFil{i} = CcorrsNormIn{i};%FilterBackgroundFromCorrs(CANONICAL_POSE, P, CcorrsNormIn{i});
     CE{i} = OptimizeEssentialMatrix(CE{i}, CcorrsNormInFil{i});
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %PlotCorrespondences(Cim{i},Cim{i+1},CcorrsNormIn{i},CcorrsNormInFil{i},K)
+    PlotCorrespondences(Cim{i},Cim{i+1},CcorrsNorm{i},CcorrsNormIn{i},K)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 
@@ -54,12 +62,8 @@ end
 disp('Pose estimation: default first pair')
 CP = cell(1,imsNo);
 CP{1} = CANONICAL_POSE; 
-CP_ = EstimateAmbiguousPose(CE{1});
-PlotSparse([CP(1) CP_(1)],[0 0 0]');
-PlotSparse([CP(1) CP_(2)],[0 0 0]');
-PlotSparse([CP(1) CP_(3)],[0 0 0]');
-PlotSparse([CP(1) CP_(4)],[0 0 0]');
-CP{2} = CP_{input(':')};
+CP{2} = EstimateRealPose(CE{1}, CcorrsNorm{1});
+%{
 for i = 2:imsNo-1
     disp(['Pose estimation: ' num2str(i+1) ' of ' num2str(imsNo)])
     CP{i+1} = EstimateRealPose(CE{i}, CcorrsNormInFil{i});
@@ -75,9 +79,10 @@ disp('Bundle Adjustment')
 C = CascadeTrack(CcorrsNormInFil);
 X = TriangulateCascade(CP,C);
 CPBA = BundleAdjustment(CP,X,C);
-
+%}
+CPBA=CP;
 
 %% FIDDLE ZONE
 X = Triangulate(CPBA{1},CPBA{2},CcorrsNormInFil{1});
 PlotSparse(CPBA,X)
-axis(6*[-5 5 -5 5 -10 10])
+axis(30*[-5 5 -5 5 -10 10])
