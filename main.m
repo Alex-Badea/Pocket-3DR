@@ -9,7 +9,7 @@ if exist('d','var')
     disp('Radial distortion parameters: '), disp(d)
 end
 
-imsDir = dir(['ims/' dataset '*.jpg']); imsDir = imsDir(1:2);
+imsDir = dir(['ims/' dataset '*.jpg']); imsDir = imsDir([1 2 3 5 7]);
 imsNames = {imsDir.name};
 imsNo = length(imsNames);
 Cim = cell(1,imsNo);
@@ -42,7 +42,7 @@ CE = cell(1,imsNo-1);
 for i = 1:imsNo-1
     disp(['Essential Matrix estimation: pair ' num2str(i) ' of ' num2str(imsNo-1)])
     [CE{i}, Cinliers] = RANSAC(num2cell(CcorrsNorm{i},1),...
-        @EstimateEssentialMatrix, 5, @SampsonDistance, 1e-7);
+        @EstimateEssentialMatrix, 5, @SampsonDistance, 1e-5);
     CcorrsNormIn{i} = cell2mat(Cinliers);
 end
 
@@ -51,10 +51,11 @@ CcorrsNormInFil = cell(1,imsNo-1);
 for i = 1:imsNo-1
     disp(['Background Filtering: pair ' num2str(i) ' of ' num2str(imsNo-1)])
     P = EstimateRealPose(CE{i}, CcorrsNormIn{i});
-    CcorrsNormInFil{i} = CcorrsNormIn{i};%FilterBackgroundFromCorrs(CANONICAL_POSE, P, CcorrsNormIn{i});
+    CcorrsNormInFil{i} = FilterBackgroundFromCorrs(CANONICAL_POSE, P,...
+        CcorrsNormIn{i});
     CE{i} = OptimizeEssentialMatrix(CE{i}, CcorrsNormInFil{i});
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    PlotCorrespondences(Cim{i},Cim{i+1},CcorrsNorm{i},CcorrsNormIn{i},K)
+    %PlotCorrespondences(Cim{i},Cim{i+1},CcorrsNormIn{i},CcorrsNormInFil{i},K)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 
@@ -62,16 +63,20 @@ end
 disp('Pose estimation: default first pair')
 CP = cell(1,imsNo);
 CP{1} = CANONICAL_POSE; 
-CP{2} = EstimateRealPose(CE{1}, CcorrsNorm{1});
-%{
+CP{2} = EstimateRealPose(CE{1}, CcorrsNormInFil{1});
+
 for i = 2:imsNo-1
     disp(['Pose estimation: ' num2str(i+1) ' of ' num2str(imsNo)])
-    CP{i+1} = EstimateRealPose(CE{i}, CcorrsNormInFil{i});
+    CP{i+1} = EstimateRealPose(CE{i}, CcorrsNormInFil{i}, CP{i});
     TrackedCorrs = CascadeTrack({CcorrsNormInFil{i-1}, CcorrsNormInFil{i}});
     TrackedCorrsIso = IsolateTransitiveCorrs(TrackedCorrs);
     disp(['Transitivity: ' num2str(size(TrackedCorrsIso,2))])
     CP{i+1} = OptimizeTranslationVector(CP{i-1}, CP{i}, CP{i+1}, ...
         TrackedCorrsIso(1:2,:), TrackedCorrsIso(3:4,:), TrackedCorrsIso(5:6,:));
+    CP_ = BundleAdjustment({CP{i-1}, CP{i}, CP{i+1}},...
+        TriangulateCascade({CP{i-1}, CP{i}, CP{i+1}},TrackedCorrsIso),...
+        TrackedCorrsIso);
+    CP{i+1} = CP_{3};
 end
 
 %% Bundle Adjustment
@@ -79,10 +84,7 @@ disp('Bundle Adjustment')
 C = CascadeTrack(CcorrsNormInFil);
 X = TriangulateCascade(CP,C);
 CPBA = BundleAdjustment(CP,X,C);
-%}
-CPBA=CP;
 
 %% FIDDLE ZONE
-X = Triangulate(CPBA{1},CPBA{2},CcorrsNormInFil{1});
 PlotSparse(CPBA,X)
-axis(30*[-5 5 -5 5 -10 10])
+axis(1*[-5 5 -5 5 -10 10])
