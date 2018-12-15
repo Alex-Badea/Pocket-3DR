@@ -1,4 +1,4 @@
-function PlotCorrespondences( im1, im2, Corrs, CorrsIn, K, mode )
+function PlotCorrespondences( im1, im2, corrs, corrsIn, K, mode)
 %PLOTCORRESPONDENCES Summary of this function goes here
 %   Detailed explanation goes here
 if ~exist('mode','var')
@@ -8,10 +8,10 @@ if ~exist('K','var')
     K = eye(3);
 end
 
-x1 = Dehomogenize(K*Homogenize(Corrs(1:2,:)));
-x2 = Dehomogenize(K*Homogenize(Corrs(3:4,:)));
-x1Inliers = Dehomogenize(K*Homogenize(CorrsIn(1:2,:)));
-x2Inliers = Dehomogenize(K*Homogenize(CorrsIn(3:4,:)));
+x1 = Dehomogenize(K*Homogenize(corrs(1:2,:)));
+x2 = Dehomogenize(K*Homogenize(corrs(3:4,:)));
+x1Inliers = Dehomogenize(K*Homogenize(corrsIn(1:2,:)));
+x2Inliers = Dehomogenize(K*Homogenize(corrsIn(3:4,:)));
 
 if strcmp(mode,'overlay')
     imBlend = imfuse(im1,im2);

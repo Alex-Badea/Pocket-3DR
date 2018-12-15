@@ -9,7 +9,7 @@ if exist('d','var')
     disp('Radial distortion parameters: '), disp(d)
 end
 
-imsDir = dir(['ims/' dataset '*.jpg']); imsDir = imsDir([1 2 3 5 7]);
+imsDir = dir(['ims/' dataset '*.jpg']); imsDir = imsDir([1 4 5 6 8]);
 imsNames = {imsDir.name};
 imsNo = length(imsNames);
 Cim = cell(1,imsNo);
@@ -46,7 +46,7 @@ for i = 1:imsNo-1
     CcorrsNormIn{i} = cell2mat(Cinliers);
 end
 
-%% Background Filtering
+%% Background Filtering ######################## NEEDS MORE WORK: MAKE ADAPTIVE
 CcorrsNormInFil = cell(1,imsNo-1);
 for i = 1:imsNo-1
     disp(['Background Filtering: pair ' num2str(i) ' of ' num2str(imsNo-1)])
@@ -55,11 +55,11 @@ for i = 1:imsNo-1
         CcorrsNormIn{i});
     CE{i} = OptimizeEssentialMatrix(CE{i}, CcorrsNormInFil{i});
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %PlotCorrespondences(Cim{i},Cim{i+1},CcorrsNormIn{i},CcorrsNormInFil{i},K)
+    PlotCorrespondences(Cim{i},Cim{i+1},CcorrsNormIn{i},CcorrsNormInFil{i},K)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 
-%% Structure from Motion
+%% Structure from Motion ###################### NEEDS MORE WORK: MAKE PARALLEL
 disp('Pose estimation: default first pair')
 CP = cell(1,imsNo);
 CP{1} = CANONICAL_POSE; 
@@ -71,19 +71,17 @@ for i = 2:imsNo-1
     TrackedCorrs = CascadeTrack({CcorrsNormInFil{i-1}, CcorrsNormInFil{i}});
     TrackedCorrsIso = IsolateTransitiveCorrs(TrackedCorrs);
     disp(['Transitivity: ' num2str(size(TrackedCorrsIso,2))])
-    CP{i+1} = OptimizeTranslationVector(CP{i-1}, CP{i}, CP{i+1}, ...
-        TrackedCorrsIso(1:2,:), TrackedCorrsIso(3:4,:), TrackedCorrsIso(5:6,:));
-    CP_ = BundleAdjustment({CP{i-1}, CP{i}, CP{i+1}},...
-        TriangulateCascade({CP{i-1}, CP{i}, CP{i+1}},TrackedCorrsIso),...
-        TrackedCorrsIso);
-    CP{i+1} = CP_{3};
+    CP{i+1} = OptimizeTranslationVector(CP{i-1}, CP{i}, CP{i+1}, TrackedCorrsIso);
+    CP(i+1) = getfield(BundleAdjustment({CP{i-1}, CP{i}, CP{i+1}},...
+        TrackedCorrsIso,...
+        TriangulateCascade({CP{i-1}, CP{i}, CP{i+1}},TrackedCorrsIso)), {3});
 end
 
 %% Bundle Adjustment
 disp('Bundle Adjustment')
 C = CascadeTrack(CcorrsNormInFil);
 X = TriangulateCascade(CP,C);
-CPBA = BundleAdjustment(CP,X,C);
+CPBA = BundleAdjustment(CP,C,X);
 
 %% FIDDLE ZONE
 PlotSparse(CPBA,X)

@@ -1,6 +1,0 @@
-tic;
-n = 1000;
-parfor i = 1:12
-   A = magic(n)*magic(n);
-end
-toc
