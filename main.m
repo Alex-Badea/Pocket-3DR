@@ -9,7 +9,8 @@ if exist('d','var')
     disp('Radial distortion parameters: '), disp(d)
 end
 
-imsDir = dir(['ims/' dataset '*.jpg']); imsDir = imsDir([1 4 5 6 8]);
+imsDir = dir(['ims/' dataset '*.jpg']);
+disp(['Dataset contains ' num2str(length(imsDir)) ' images'])
 imsNames = {imsDir.name};
 imsNo = length(imsNames);
 Cim = cell(1,imsNo);
@@ -30,10 +31,8 @@ CcorrsNorm = cell(1,imsNo-1);
 Ccorrs = cell(1,imsNo-1);
 for i = 1:imsNo-1
     disp(['Feature matching: pair ' num2str(i) ' of ' num2str(imsNo-1)])
-    corrs = MatchFeaturePoints(CfeatPts{i}, CfeatPts{i+1});
-    Ccorrs{i} = corrs;
-    CcorrsNorm{i} = [Dehomogenize(K\Homogenize(corrs(1:2,:)));
-        Dehomogenize(K\Homogenize(corrs(3:4,:)))];
+    Ccorrs{i} = MatchFeaturePoints(CfeatPts{i}, CfeatPts{i+1});
+    CcorrsNorm{i} = NormalizeCorrs(Ccorrs{i},K);
 end
 
 %% Essential Matrix estimation
@@ -44,45 +43,72 @@ for i = 1:imsNo-1
     [CE{i}, Cinliers] = RANSAC(num2cell(CcorrsNorm{i},1),...
         @EstimateEssentialMatrix, 5, @SampsonDistance, 1e-5);
     CcorrsNormIn{i} = cell2mat(Cinliers);
+    CE{i} = OptimizeEssentialMatrix(CE{i}, CcorrsNormIn{i});
 end
 
 %% Background Filtering ######################## NEEDS MORE WORK: MAKE ADAPTIVE
+CEO = cell(1,imsNo-1);
 CcorrsNormInFil = cell(1,imsNo-1);
 for i = 1:imsNo-1
     disp(['Background Filtering: pair ' num2str(i) ' of ' num2str(imsNo-1)])
     P = EstimateRealPose(CE{i}, CcorrsNormIn{i});
     CcorrsNormInFil{i} = FilterBackgroundFromCorrs(CANONICAL_POSE, P,...
         CcorrsNormIn{i});
-    CE{i} = OptimizeEssentialMatrix(CE{i}, CcorrsNormInFil{i});
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    PlotCorrespondences(Cim{i},Cim{i+1},CcorrsNormIn{i},CcorrsNormInFil{i},K)
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    CEO{i} = OptimizeEssentialMatrix(CE{i}, CcorrsNormInFil{i});
 end
 
-%% Structure from Motion ###################### NEEDS MORE WORK: MAKE PARALLEL
+%% Sparse Reconstruction ###################### NEEDS MORE WORK: MAKE PARALLEL
 disp('Pose estimation: default first pair')
 CP = cell(1,imsNo);
 CP{1} = CANONICAL_POSE; 
-CP{2} = EstimateRealPose(CE{1}, CcorrsNormInFil{1});
+CP{2} = EstimateRealPose(CEO{1}, CcorrsNormInFil{1});
 
+LOCALBA_OCCUR_PER1 = 4;
+LOCALBA_OCCUR_PER2 = 6;
 for i = 2:imsNo-1
     disp(['Pose estimation: ' num2str(i+1) ' of ' num2str(imsNo)])
-    CP{i+1} = EstimateRealPose(CE{i}, CcorrsNormInFil{i}, CP{i});
+    CP{i+1} = EstimateRealPose(CEO{i}, CcorrsNormInFil{i}, CP{i});
     TrackedCorrs = CascadeTrack({CcorrsNormInFil{i-1}, CcorrsNormInFil{i}});
     TrackedCorrsIso = IsolateTransitiveCorrs(TrackedCorrs);
     disp(['Transitivity: ' num2str(size(TrackedCorrsIso,2))])
     CP{i+1} = OptimizeTranslationVector(CP{i-1}, CP{i}, CP{i+1}, TrackedCorrsIso);
-    CP(i+1) = getfield(BundleAdjustment({CP{i-1}, CP{i}, CP{i+1}},...
-        TrackedCorrsIso,...
-        TriangulateCascade({CP{i-1}, CP{i}, CP{i+1}},TrackedCorrsIso)), {3});
+    CP{i+1} = MiniBundleAdjustment(CP{i-1}, CP{i}, CP{i+1}, TrackedCorrsIso);
+    
+    if ~mod(i-1, LOCALBA_OCCUR_PER1-2)
+        disp('Local Bundle Adjustment 1...')
+        disp(['Refine ' num2str(i-(LOCALBA_OCCUR_PER1-2)) '->' num2str(i+1)])
+        CPBA = BundleAdjustment(CP(i-(LOCALBA_OCCUR_PER1-2) : i+1),...
+            IsolateTransitiveCorrs(CascadeTrack(...
+            CcorrsNormInFil(i-(LOCALBA_OCCUR_PER1-2) : i)), 'displaySize'));
+        CP(i-(LOCALBA_OCCUR_PER1-2) : i+1) = CPBA;
+    end
+    
+    if ~mod(i-1, LOCALBA_OCCUR_PER2-2)
+        disp('Local Bundle Adjustment 2...')
+        disp(['Refine ' num2str(i-(LOCALBA_OCCUR_PER2-2)) '->' num2str(i+1)])
+        CPBA = BundleAdjustment(CP(i-(LOCALBA_OCCUR_PER2-2) : i+1),...
+            IsolateTransitiveCorrs(CascadeTrack(...
+            CcorrsNormInFil(i-(LOCALBA_OCCUR_PER2-2) : i)), 'displaySize'));
+        CP(i-(LOCALBA_OCCUR_PER2-2) : i+1) = CPBA;
+    end
 end
 
-%% Bundle Adjustment
-disp('Bundle Adjustment')
-C = CascadeTrack(CcorrsNormInFil);
-X = TriangulateCascade(CP,C);
-CPBA = BundleAdjustment(CP,C,X);
+disp('Last Local Bundle Adjustments...')
+disp(['Refine ' num2str((imsNo-1)-(LOCALBA_OCCUR_PER1-2)) '->' num2str(imsNo)])
+CPBA = BundleAdjustment(CP((imsNo-1)-(LOCALBA_OCCUR_PER1-2) : imsNo),...
+    IsolateTransitiveCorrs(CascadeTrack(...
+    CcorrsNormInFil((imsNo-1)-(LOCALBA_OCCUR_PER1-2) : imsNo-1)), 'displaySize'));
+CP((imsNo-1)-(LOCALBA_OCCUR_PER1-2) : imsNo) = CPBA;
+disp(['Refine ' num2str((imsNo-1)-(LOCALBA_OCCUR_PER2-2)) '->' num2str(imsNo)])
+CPBA = BundleAdjustment(CP((imsNo-1)-(LOCALBA_OCCUR_PER2-2) : imsNo),...
+    IsolateTransitiveCorrs(CascadeTrack(...
+    CcorrsNormInFil((imsNo-1)-(LOCALBA_OCCUR_PER2-2) : imsNo-1)), 'displaySize'));
+CP((imsNo-1)-(LOCALBA_OCCUR_PER2-2) : imsNo) = CPBA;
 
-%% FIDDLE ZONE
-PlotSparse(CPBA,X)
-axis(1*[-5 5 -5 5 -10 10])
+%% Global Bundle Adjustment
+disp('Global Bundle Adjustment')
+C = CascadeTrack(CcorrsNormInFil);
+CPBA = BundleAdjustment(CP,C);
+X = TriangulateCascade(CPBA,C);
+
+%% Dense Reconstruction

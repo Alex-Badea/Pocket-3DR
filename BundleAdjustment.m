@@ -1,15 +1,12 @@
-function [CP, X, repjErrs] = BundleAdjustment(CP, CascadeMatches, X)
+function [CP, X, repjErrs] = BundleAdjustment(CP, CascadeMatches)
 %BUNDLEADJUSTMENT Summary of this function goes here
 %   Detailed explanation goes here
 % Consistency checks
 if length(CP) ~= size(CascadeMatches,1)/2
     error('No. of camera poses differs from cascade track length')
 end
-if size(X,2) ~= size(CascadeMatches,2)
-    error('No. of triangulated points differs from total no. of 2D points')
-end
 % Converting into MATLAB Bundle Adjustment format
-xyzPoints = X';
+xyzPoints = TriangulateCascade(CP,CascadeMatches)';
 pointTracks = pointTracksFromCascade(CascadeMatches);
 cameraPoses = poseTableFromCell(CP);
 cameraParams = cameraParameters('IntrinsicMatrix',eye(3));
