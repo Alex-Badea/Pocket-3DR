@@ -1,16 +1,20 @@
 addpath(genpath(fileparts(which(mfilename))))
-dataset = 'mer';
-load('calib_AV_X2S_4MPIX.mat')
+
+%% Program arguments
+dataset = 'blc';
+calib = 'calib_AV_X2S_4MPIX.mat';
+denseRecontructionPairs = [1 ];
 
 %% Reading image dataset
 disp(['Running pipeline for dataset "' dataset '"'])
+imsDir = dir(['ims/' dataset '*.jpg']);
+disp(['Dataset contains ' num2str(length(imsDir)) ' images'])
+load(calib)
 disp('Calibration matrix: '), disp(K)
 if exist('d','var')
     disp('Radial distortion parameters: '), disp(d)
 end
 
-imsDir = dir(['ims/' dataset '*.jpg']);
-disp(['Dataset contains ' num2str(length(imsDir)) ' images'])
 imsNames = {imsDir.name};
 imsNo = length(imsNames);
 Cim = cell(1,imsNo);
@@ -41,7 +45,7 @@ CE = cell(1,imsNo-1);
 for i = 1:imsNo-1
     disp(['Essential Matrix estimation: pair ' num2str(i) ' of ' num2str(imsNo-1)])
     [CE{i}, Cinliers] = RANSAC(num2cell(CcorrsNorm{i},1),...
-        @EstimateEssentialMatrix, 5, @SampsonDistance, 1e-5);
+        @EstimateEssentialMatrix, 5, @SampsonDistance, 1e-6);
     CcorrsNormIn{i} = cell2mat(Cinliers);
     CE{i} = OptimizeEssentialMatrix(CE{i}, CcorrsNormIn{i});
 end
@@ -77,33 +81,44 @@ for i = 2:imsNo-1
     if ~mod(i-1, LOCALBA_OCCUR_PER1-2)
         disp('Local Bundle Adjustment 1...')
         disp(['Refine ' num2str(i-(LOCALBA_OCCUR_PER1-2)) '->' num2str(i+1)])
-        CPBA = BundleAdjustment(CP(i-(LOCALBA_OCCUR_PER1-2) : i+1),...
-            IsolateTransitiveCorrs(CascadeTrack(...
-            CcorrsNormInFil(i-(LOCALBA_OCCUR_PER1-2) : i)), 'displaySize'));
-        CP(i-(LOCALBA_OCCUR_PER1-2) : i+1) = CPBA;
+        C = IsolateTransitiveCorrs(CascadeTrack(...
+            CcorrsNormInFil(i-(LOCALBA_OCCUR_PER1-2) : i)), 'displaySize');
+        if size(C,2) > 10
+            CPBA = BundleAdjustment(CP(i-(LOCALBA_OCCUR_PER1-2) : i+1), C);
+            CP(i-(LOCALBA_OCCUR_PER1-2) : i+1) = CPBA;
+        end
     end
-    
     if ~mod(i-1, LOCALBA_OCCUR_PER2-2)
         disp('Local Bundle Adjustment 2...')
         disp(['Refine ' num2str(i-(LOCALBA_OCCUR_PER2-2)) '->' num2str(i+1)])
-        CPBA = BundleAdjustment(CP(i-(LOCALBA_OCCUR_PER2-2) : i+1),...
-            IsolateTransitiveCorrs(CascadeTrack(...
-            CcorrsNormInFil(i-(LOCALBA_OCCUR_PER2-2) : i)), 'displaySize'));
-        CP(i-(LOCALBA_OCCUR_PER2-2) : i+1) = CPBA;
+        C = IsolateTransitiveCorrs(CascadeTrack(...
+            CcorrsNormInFil(i-(LOCALBA_OCCUR_PER2-2) : i)), 'displaySize'); 
+        if size(C,2) > 10
+            CPBA = BundleAdjustment(CP(i-(LOCALBA_OCCUR_PER2-2) : i+1), C);
+            CP(i-(LOCALBA_OCCUR_PER2-2) : i+1) = CPBA;
+        end
     end
 end
 
 disp('Last Local Bundle Adjustments...')
-disp(['Refine ' num2str((imsNo-1)-(LOCALBA_OCCUR_PER1-2)) '->' num2str(imsNo)])
-CPBA = BundleAdjustment(CP((imsNo-1)-(LOCALBA_OCCUR_PER1-2) : imsNo),...
-    IsolateTransitiveCorrs(CascadeTrack(...
-    CcorrsNormInFil((imsNo-1)-(LOCALBA_OCCUR_PER1-2) : imsNo-1)), 'displaySize'));
-CP((imsNo-1)-(LOCALBA_OCCUR_PER1-2) : imsNo) = CPBA;
-disp(['Refine ' num2str((imsNo-1)-(LOCALBA_OCCUR_PER2-2)) '->' num2str(imsNo)])
-CPBA = BundleAdjustment(CP((imsNo-1)-(LOCALBA_OCCUR_PER2-2) : imsNo),...
-    IsolateTransitiveCorrs(CascadeTrack(...
-    CcorrsNormInFil((imsNo-1)-(LOCALBA_OCCUR_PER2-2) : imsNo-1)), 'displaySize'));
-CP((imsNo-1)-(LOCALBA_OCCUR_PER2-2) : imsNo) = CPBA;
+if imsNo > LOCALBA_OCCUR_PER1
+    disp(['Refine ' num2str((imsNo-1)-(LOCALBA_OCCUR_PER1-2)) '->' num2str(imsNo)])
+    C = IsolateTransitiveCorrs(CascadeTrack(...
+        CcorrsNormInFil((imsNo-1)-(LOCALBA_OCCUR_PER1-2) : imsNo-1)), 'displaySize');
+    if size(C,2) > 10
+        CPBA = BundleAdjustment(CP((imsNo-1)-(LOCALBA_OCCUR_PER1-2) : imsNo), C);
+        CP((imsNo-1)-(LOCALBA_OCCUR_PER1-2) : imsNo) = CPBA;
+    end
+end
+if imsNo > LOCALBA_OCCUR_PER2
+    disp(['Refine ' num2str((imsNo-1)-(LOCALBA_OCCUR_PER2-2)) '->' num2str(imsNo)])
+    C = IsolateTransitiveCorrs(CascadeTrack(...
+        CcorrsNormInFil((imsNo-1)-(LOCALBA_OCCUR_PER2-2) : imsNo-1)), 'displaySize');
+    if size(C,2) > 10
+        CPBA = BundleAdjustment(CP((imsNo-1)-(LOCALBA_OCCUR_PER2-2) : imsNo), C);
+        CP((imsNo-1)-(LOCALBA_OCCUR_PER2-2) : imsNo) = CPBA;
+    end
+end
 
 %% Global Bundle Adjustment
 disp('Global Bundle Adjustment')

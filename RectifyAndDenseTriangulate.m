@@ -22,16 +22,17 @@ for i = 1:n-1
     pars = [];
     pars.mu = -10.6;
     pars.window = 4;
-    pars.zonegap = 10;
-    pars.pm_tau = 0.95;
+    pars.zonegap = 4;
+    pars.pm_tau = 0.99;
+    pars.tau = 0.7;
     D = gcs(im1Rec, im2Rec, [], pars);
     
     if exist('CplotFlag','var') 
         if any(contains(CplotFlag, 'plotCorrespondences'))
             mc12Rec = CorrsFromDisparity(D);
             g = fix(linspace(1, size(mc12Rec,2), 1000));
-            PlotCorrespondencesNorm(im1RecPlt, im2RecPlt, ...
-                eye(3), mc12Rec(:,g), mc12Rec(:,g))
+            PlotCorrespondences(im1RecPlt, im2RecPlt, ...
+                mc12Rec(:,g), mc12Rec(:,g))
         end
         if any(contains(CplotFlag, 'plotDisparityMap'))
             figure
@@ -49,8 +50,7 @@ for i = 1:n-1
     D(D<lb(1) | D>ub(1)) = nan;
     mc12Rec = CorrsFromDisparity(D);
     
-    CX{i} = Triangulate(KP1Rec, KP2Rec, ...
-        mc12Rec(1:2,:), mc12Rec(3:4,:));
+    CX{i} = Triangulate(KP1Rec, KP2Rec, mc12Rec(1:4,:));
     
     sz = [size(Cim{i},1) size(Cim{i},2)];
     mc1Unr = [fix(Dehomogenize(H1\Homogenize(mc12Rec(1:2,:))));
