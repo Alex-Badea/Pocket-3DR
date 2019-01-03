@@ -4,5 +4,6 @@ function PlotSparse(CP, X)
 CR = cellfun(@(P) P(1:3,1:3), CP, 'UniformOutput', false);
 CC = cellfun(@(P) -P(1:3,1:3)'*P(1:3,4), CP, 'UniformOutput', false);
 Display3D(CC, CR, X);
+drawnow
 end
 

@@ -3,7 +3,7 @@ function [im] = CropBackground(im, foregroundPts, edgeShift)
 %   Detailed explanation goes here
 hullInd = convhull(foregroundPts(1,:), foregroundPts(2,:));
 hull = foregroundPts(:,hullInd);
-if exist('boundingBoxInflation','var')
+if exist('edgeShift','var')
     hull = (hull-mean(hull,2))*edgeShift+mean(hull,2);
 end
 rp = roipoly(im, hull(1,:), hull(2,:));
