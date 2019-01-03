@@ -187,3 +187,7 @@ end
 PlotDense(cell2mat(CX),cell2mat(CC))
 
 %% Remeshing
+disp('Remeshing...')
+ReconstructPointCloud(CScX, [dataset '.ply'])
+
+%% Retexturing
