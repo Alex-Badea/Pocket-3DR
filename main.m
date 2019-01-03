@@ -1,7 +1,7 @@
 addpath(genpath(fileparts(which(mfilename))))
 
 %% Program arguments
-dataset = 'cpl';
+dataset = 'mer';
 calib = 'calib_AV_X2S_4MPIX.mat';
 drp = [1 ...
     fix(length(dir(['ims/' dataset '*.jpg']))/4)+1 ...
@@ -63,7 +63,7 @@ for i = 1:imsNo-1
         CcorrsNormIn{i});
     CEO{i} = OptimizeEssentialMatrix(CE{i}, CcorrsNormInFil{i});
 end
-%}
+
 %% Sparse Reconstruction ###################### NEEDS MORE WORK: MAKE PARALLEL
 disp('Pose estimation: default first pair')
 CP = cell(1,imsNo);
@@ -172,9 +172,10 @@ PlotSparse(CP,X);
 %% Dense Reconstruction
 CX = cell(1,length(drp));
 CC = cell(1,length(drp));
+CScX = cell(1,length(drp));
 for i = 1:length(drp)
     disp(['Dense Reconstruction: pair ' num2str(i) ' of ' num2str(length(drp))])
-    [CX{i}, CC{i}] = RectifyAndDenseTriangulate(...
+    [CX{i}, CC{i}, CScX{i}] = RectifyAndDenseTriangulate(...
         CropBackground(...
         Cim{drp(i)},Unnormalize(CcorrsNormInFil{drp(i)}(1:2,:),K),1.1),...
         CropBackground(...

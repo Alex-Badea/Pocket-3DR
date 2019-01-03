@@ -27,7 +27,7 @@ big_tri = 5; % max factor threshold of max to min triangle side length
 show = 0;  % plot figures
 psr_path = '"repo_CVUT_FEL/psr/PoissonRecon64"'; % psr executable, use *64 on 64bit systems
 psr_output = 'psr.ply';      % output filename
-psr_dep = 10;                % psr detail level (max 12)
+psr_dep = 9;                % psr detail level (max 12)
 
 %% open output file for points and normals
 npts = 'psr.npts';

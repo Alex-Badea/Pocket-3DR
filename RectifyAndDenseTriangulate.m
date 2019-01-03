@@ -1,4 +1,4 @@
-function [X, Color, ScreenedX] = RectifyAndDenseTriangulate(...
+function [X, Color, ScreenedX, Disparity] = RectifyAndDenseTriangulate(...
     im1, im2, F, KP1, KP2, CplotFlag)
 %RECTIFYANDDENSETRIANGULATE Summary of this function goes here
 %   Detailed explanation goes here
@@ -17,11 +17,11 @@ pars.window = 4;
 pars.zonegap = 4;
 pars.pm_tau = 0.99;
 pars.tau = 0.7;
-D = gcs(im1Rec, im2Rec, [], pars);
+Disparity = gcs(im1Rec, im2Rec, [], pars);
 
 if exist('CplotFlag','var')
     if any(contains(CplotFlag, 'plotCorrespondences'))
-        mc12Rec = CorrsFromDisparity(D);
+        mc12Rec = CorrsFromDisparity(Disparity);
         g = fix(linspace(1, size(mc12Rec,2), 1000));
         PlotCorrespondences(im1RecPlt, im2RecPlt, ...
             mc12Rec(:,g), mc12Rec(:,g))
@@ -29,21 +29,21 @@ if exist('CplotFlag','var')
     end
     if any(contains(CplotFlag, 'plotDisparityMap'))
         figure
-        set(imagesc(D),'AlphaData',~isnan(D)), colormap(jet), colorbar
-        drawnow
+        set(imagesc(Disparity),'AlphaData',~isnan(Disparity)), colormap(jet)
+        colorbar,drawnow
     end
 end
 
 h = figure('pos', [0 100 getfield(get(0,'screensize'),{3}) 300]);
-set(0, 'CurrentFigure', h)
-histogram(D,1000), drawnow
+set(0,'CurrentFigure',h)
+histogram(Disparity,1000), drawnow
 pause(1)
 lb = ginput(1);
 ub = ginput(1);
 hold on, plot([lb(1) ub(1)], [0 0], 'rx', 'LineWidth', 2), drawnow
 hold off, close(gcf)
-D(D<lb(1) | D>ub(1)) = nan;
-mc12Rec = CorrsFromDisparity(D);
+Disparity(Disparity<lb(1) | Disparity>ub(1)) = nan;
+mc12Rec = CorrsFromDisparity(Disparity);
 
 X = Triangulate(KP1Rec, KP2Rec, mc12Rec(1:4,:));
 
@@ -56,4 +56,14 @@ Color = bsxfun(@(x,dummy) ...
     min(abs(x(1)) + double(x(1)==0), sz(2)),...
     :),[3 2 1])), ...
     mc1Unr, 1:size(mc12Rec,2));
+
+ScreenedX1 = nan(size(Disparity));
+ScreenedX1(~isnan(Disparity)) = X(1,:);
+ScreenedX2 = nan(size(Disparity));
+ScreenedX2(~isnan(Disparity)) = X(2,:);
+ScreenedX3 = nan(size(Disparity));
+ScreenedX3(~isnan(Disparity)) = X(3,:);
+ScreenedX(:,:,1) = ScreenedX1;
+ScreenedX(:,:,2) = ScreenedX2;
+ScreenedX(:,:,3) = ScreenedX3;
 end
