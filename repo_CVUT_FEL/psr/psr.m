@@ -1,4 +1,4 @@
-function psr(X)
+function [CFilteredX,CFilteredColors] = psr(CScreenedX,CScreenedColors)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   Surface reconstruction from oriented points                      %
 %   Radim Tylecek, CMP FEL CVUT Praha, 2010.                         %
@@ -23,39 +23,52 @@ function psr(X)
 % [2] MeshLab: http://meshlab.sourceforge.net/     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% parameters
-big_tri = 5; % max factor threshold of max to min triangle side length
+big_tri = 3; % max factor threshold of max to min triangle side length
 show = 0;  % plot figures
-psr_path = '"repo_CVUT_FEL/psr/PoissonRecon64"'; % psr executable, use *64 on 64bit systems
-psr_output = 'psr.ply';      % output filename
-psr_dep = 9;                % psr detail level (max 12)
+psr_path = '"repo_CVUT_FEL/psr/PoissonRecon"'; % psr executable, use *64 on 64bit systems
+psr_output = 'psr_out.ply';      % output filename
+psr_dep = 7;                % psr detail level (max 12)
 
 %% open output file for points and normals
-npts = 'psr.npts';
+npts = 'psr_in.ply';
 f = fopen(npts,'w');
 
 %% process all pairs
 fprintf('Poisson Surface Recontruction %s\n',datestr(now)); tic;
-fprintf('Processing %d pairs...\n',length(X));
+fprintf('Processing %d pairs...\n',length(CScreenedX));
 
 ptsum = 0;
 % get depths and points from all pairs
-for p = 1:length(X)
+
+CFilteredX = cell(1,length(CScreenedX));
+if exist('CColors','var')
+    CFilteredColors = cell(1,length(CScreenedX));
+else
+    CFilteredColors = [];
+end
+for p = 1:length(CScreenedX)
     
-    vis = ~isnan(X{p}(:,:,1)); % visibility mask
+    vis = ~isnan(CScreenedX{p}(:,:,1)); % visibility mask
     fprintf('%d: calculating normals for %d points...',p,sum(vis(:)));
-    H = size(X{p},1); % height
-    W = size(X{p},2); % width
+    H = size(CScreenedX{p},1); % height
+    W = size(CScreenedX{p},2); % width
     
     %% align points in array
     ptX = zeros(H*W,3);
-    Xp = X{p}(:,:,1);
+    Xp = CScreenedX{p}(:,:,1);
     ptX(:,1) = Xp(:);
-    Xp = X{p}(:,:,2);
+    Xp = CScreenedX{p}(:,:,2);
     ptX(:,2) = Xp(:);
-    Xp = X{p}(:,:,3);
+    Xp = CScreenedX{p}(:,:,3);
     ptX(:,3) = Xp(:);
     
-    
+    Colors = zeros(H*W,3);
+    ColorsP = CScreenedColors{p}(:,:,1);
+    Colors(:,1) = ColorsP(:);
+    ColorsP = CScreenedColors{p}(:,:,2);
+    Colors(:,2) = ColorsP(:);
+    ColorsP = CScreenedColors{p}(:,:,3);
+    Colors(:,3) = ColorsP(:);
     %% calculate normals for all possible triangles
     
     ptN = zeros(H*W,3);   % normal accumulator
@@ -111,7 +124,9 @@ for p = 1:length(X)
     vN = ptN(vpt,:)';
     vN = (vN'./repmat(sqrt(dot(vN',vN',2)),1,3))'; % normalize
     fprintf('removed %d lonely and border points\n',sum(vis(:))-sum(vpt(:)));
-    
+
+    CFilteredX{p} = vX;
+    CFilteredColors{p} = Colors(vpt,:)';
     %% figure
     if show>0
         figure('Name','Points+normals');
@@ -122,7 +137,17 @@ for p = 1:length(X)
         line([vX(1,seli); lX(1,:)],[vX(3,seli); lX(3,:)],[vX(2,seli); lX(2,:)],'color','r');
     end
     %% write to file
-    fprintf(f,'%g %g %g  %g %g %g\n',[vX; vN]);
+    fprintf(f,['ply\n'...
+        'format ascii 1.0\n'...
+        'element vertex ' num2str(size(vX,2)) '\n'...
+        'property float x\n'...
+        'property float y\n'...
+        'property float z\n'...
+        'property uchar red\n'...
+        'property uchar green\n'...
+        'property uchar blue\n'...
+        'end_header\n']);
+    fprintf(f,'%g %g %g  %g %g %g  %g %g %g\n',[vX; vN; CFilteredColors{p}]);
     
     ptsum = ptsum + sum(vpt(:));
 end
@@ -132,6 +157,8 @@ toc;
 
 %% run PSR
 fprintf('Running PSR depth=%d on %d total points...\n\n',psr_dep,ptsum); tic;
-eval(sprintf('!%s --verbose --depth %d --in %s --out %s',psr_path,psr_dep,npts,psr_output));
+eval(sprintf(['!%s --verbose --ascii --normals --colors --depth %d '...
+    '--in %s --out %s --threads %d'],...
+    psr_path,psr_dep,npts,psr_output,feature('numcores')));
 toc;
 

@@ -1,5 +1,5 @@
-function [X, Color, ScreenedX, Disparity] = RectifyAndDenseTriangulate(...
-    im1, im2, F, KP1, KP2, CplotFlag)
+function [X,Colors,ScreenedX,ScreenedColors,Disparity] =...
+    RectifyAndDenseTriangulate(im1,im2,F,KP1,KP2,CplotFlag)
 %RECTIFYANDDENSETRIANGULATE Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -50,7 +50,7 @@ X = Triangulate(KP1Rec, KP2Rec, mc12Rec(1:4,:));
 sz = [size(im1,1) size(im1,2)];
 mc1Unr = [fix(Dehomogenize(H1\Homogenize(mc12Rec(1:2,:))));
     nan(1,size(mc12Rec,2))];
-Color = bsxfun(@(x,dummy) ...
+Colors = bsxfun(@(x,dummy) ...
     double(permute(im1(...
     min(abs(x(2)) + double(x(2)==0), sz(1)),...
     min(abs(x(1)) + double(x(1)==0), sz(2)),...
@@ -66,4 +66,14 @@ ScreenedX3(~isnan(Disparity)) = X(3,:);
 ScreenedX(:,:,1) = ScreenedX1;
 ScreenedX(:,:,2) = ScreenedX2;
 ScreenedX(:,:,3) = ScreenedX3;
+
+ScreenedColors1 = nan(size(Disparity));
+ScreenedColors1(~isnan(Disparity)) = Colors(1,:);
+ScreenedColors2 = nan(size(Disparity));
+ScreenedColors2(~isnan(Disparity)) = Colors(2,:);
+ScreenedColors3 = nan(size(Disparity));
+ScreenedColors3(~isnan(Disparity)) = Colors(3,:);
+ScreenedColors(:,:,1) = ScreenedColors1;
+ScreenedColors(:,:,2) = ScreenedColors2;
+ScreenedColors(:,:,3) = ScreenedColors3;
 end

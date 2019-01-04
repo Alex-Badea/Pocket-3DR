@@ -21,10 +21,6 @@ function [ optimalHypothesis, inliersSet, outliersSet, optimHypGenSamples,...
 %   each member of the inputSet and representing its error;
 %   threshold - the maximum permited error value under which a sample is
 %   considered to be an inlier.
-% @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-% WILL IT WORK IF I CONSIDER THE HYPOGENFCN TO RETURN ONES SINGLE
-% HYPOTHESIS AND LET THE DISTANCEFCN TEST AGAINST THEM ALL AND PICK THE
-% BEST SINCE ITS BEING GIVEN ALL OF THE INPUTSET???????????????????????
 if ~iscell(inputSet)
     error('inputSet must be of cell type')
 end
@@ -62,7 +58,7 @@ while step <= maxSteps
         end
     end
     e = 1 - crtSize/inputSize;
-    maxSteps = log(1-0.9999999999) / log(1-(1-e)^2);
+    maxSteps = log(1-0.9999999999999999) / log(1-(1-e)^4);
     step = step + 1;
 end
 

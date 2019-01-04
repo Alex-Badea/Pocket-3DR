@@ -1,12 +1,12 @@
 addpath(genpath(fileparts(which(mfilename))))
 
 %% Program arguments
-dataset = 'mer';
+dataset = 'cpl';
 calib = 'calib_AV_X2S_4MPIX.mat';
 drp = [1 ...
-    fix(length(dir(['ims/' dataset '*.jpg']))/4)+1 ...
-    fix(2*length(dir(['ims/' dataset '*.jpg']))/4)+1 ...
-    fix(3*length(dir(['ims/' dataset '*.jpg']))/4)+1 ...
+    %fix(length(dir([+'ims/' dataset '*.jpg']))/4)+1 ...
+    %fix(2*length(dir(['ims/' dataset '*.jpg']))/4)+1 ...
+    %fix(3*length(dir(['ims/' dataset '*.jpg']))/4)+1 ...
     ];
 %% Reading image dataset
 disp(['Running pipeline for dataset "' dataset '"'])
@@ -172,10 +172,11 @@ PlotSparse(CP,X);
 %% Dense Reconstruction
 CX = cell(1,length(drp));
 CC = cell(1,length(drp));
-CScX = cell(1,length(drp));
+CXSc = cell(1,length(drp));
+CCSc = cell(1,length(drp));
 for i = 1:length(drp)
     disp(['Dense Reconstruction: pair ' num2str(i) ' of ' num2str(length(drp))])
-    [CX{i}, CC{i}, CScX{i}] = RectifyAndDenseTriangulate(...
+    [CX{i}, CC{i}, CXSc{i}, CCSc{i}] = RectifyAndDenseTriangulate(...
         CropBackground(...
         Cim{drp(i)},Unnormalize(CcorrsNormInFil{drp(i)}(1:2,:),K),1.1),...
         CropBackground(...
@@ -188,6 +189,8 @@ PlotDense(cell2mat(CX),cell2mat(CC))
 
 %% Remeshing
 disp('Remeshing...')
-ReconstructPointCloud(CScX, [dataset '.ply'])
+[CXFil,CCFil] = ReconstructPointCloud([dataset '.ply'], CXSc, CCSc);
+
+PlotDense(cell2mat(CXFil),cell2mat(CCFil))
 
 %% Retexturing

@@ -1,4 +1,4 @@
-function [D,W,x,w,K,SEEDs] = gcs(Il,Ir,inSEEDs,pars);
+function [D,W,x,w,K,SEEDs] = gcs(Il,Ir,inSEEDs,pars)
 %GCS - stereo matching via growing correspondence seeds in disparity space
 %
 % [D,W,x,w,K,SEEDs] = gcs(Il,Ir,inSEEDs,pars);
