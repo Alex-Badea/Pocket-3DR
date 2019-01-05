@@ -1,10 +1,12 @@
-i=1;
-[X,C,SX] = RectifyAndDenseTriangulate(...
-    CropBackground(...
-    Cim{drp(i)},Unnormalize(CcorrsNormInFil{drp(i)}(1:2,:),K),1.1),...
-    CropBackground(...
-    Cim{drp(i)+1},Unnormalize(CcorrsNormInFil{drp(i)}(3:4,:),K),1.1),...
-    K'\CEO{drp(i)}/K, K*CP{drp(i)}, K*CP{drp(i)+1},...
-    {'plotCorrespondences','plotDisparityMap'});
+X = CX{1};
+C = CC{1};
+[~,inInd] = pcdenoise(pointCloud(X'), 'NumNeighbors', 50, 'Threshold', 0.1);
+inInd = ismember(1:size(X,2), inInd);
+X = X(:,inInd);
+C = C(:,inInd);
 
-psr({SX})
+NotNanInd = ~isnan(D);
+NotNanAndNotNoiseInd = zeros(size(D));
+NotNanAndNotNoiseInd(NotNanInd==true) = inInd;
+figure,imshow(NotNanInd)
+figure,imshow(NotNanAndNotNoiseInd)

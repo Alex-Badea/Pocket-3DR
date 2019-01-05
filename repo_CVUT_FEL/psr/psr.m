@@ -23,15 +23,11 @@ function [CFilteredX,CFilteredColors] = psr(CScreenedX,CScreenedColors)
 % [2] MeshLab: http://meshlab.sourceforge.net/     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% parameters
-big_tri = 3; % max factor threshold of max to min triangle side length
+big_tri = 2; % max factor threshold of max to min triangle side length
 show = 0;  % plot figures
 psr_path = '"repo_CVUT_FEL/psr/PoissonRecon"'; % psr executable, use *64 on 64bit systems
 psr_output = 'psr_out.ply';      % output filename
-psr_dep = 7;                % psr detail level (max 12)
-
-%% open output file for points and normals
-npts = 'psr_in.ply';
-f = fopen(npts,'w');
+psr_dep = 8;                % psr detail level (max 12)
 
 %% process all pairs
 fprintf('Poisson Surface Recontruction %s\n',datestr(now)); tic;
@@ -41,11 +37,9 @@ ptsum = 0;
 % get depths and points from all pairs
 
 CFilteredX = cell(1,length(CScreenedX));
-if exist('CColors','var')
-    CFilteredColors = cell(1,length(CScreenedX));
-else
-    CFilteredColors = [];
-end
+CFilteredNormals = cell(1,length(CScreenedX));
+CFilteredColors = cell(1,length(CScreenedX));
+
 for p = 1:length(CScreenedX)
     
     vis = ~isnan(CScreenedX{p}(:,:,1)); % visibility mask
@@ -126,6 +120,7 @@ for p = 1:length(CScreenedX)
     fprintf('removed %d lonely and border points\n',sum(vis(:))-sum(vpt(:)));
 
     CFilteredX{p} = vX;
+    CFilteredNormals{p} = vN;
     CFilteredColors{p} = Colors(vpt,:)';
     %% figure
     if show>0
@@ -136,21 +131,28 @@ for p = 1:length(CScreenedX)
         lX = vX(:,seli) + 0.1*vN(:,seli);
         line([vX(1,seli); lX(1,:)],[vX(3,seli); lX(3,:)],[vX(2,seli); lX(2,:)],'color','r');
     end
-    %% write to file
-    fprintf(f,['ply\n'...
-        'format ascii 1.0\n'...
-        'element vertex ' num2str(size(vX,2)) '\n'...
-        'property float x\n'...
-        'property float y\n'...
-        'property float z\n'...
-        'property uchar red\n'...
-        'property uchar green\n'...
-        'property uchar blue\n'...
-        'end_header\n']);
-    fprintf(f,'%g %g %g  %g %g %g  %g %g %g\n',[vX; vN; CFilteredColors{p}]);
-    
     ptsum = ptsum + sum(vpt(:));
 end
+
+%% open output file for points and normals
+npts = 'psr_in.ply';
+f = fopen(npts,'w');
+
+fprintf(f,['ply\n'...
+    'format ascii 1.0\n'...
+    'element vertex ' num2str(size(cell2mat(CFilteredX),2)) '\n'...
+    'property float x\n'...
+    'property float y\n'...
+    'property float z\n'...
+    'property float nx\n'...
+    'property float ny\n'...
+    'property float nz\n'...
+    'property uchar red\n'...
+    'property uchar green\n'...
+    'property uchar blue\n'...
+    'end_header\n']);
+fprintf(f,'%g %g %g  %g %g %g  %g %g %g\n',...
+    [cell2mat(CFilteredX); cell2mat(CFilteredNormals); cell2mat(CFilteredColors)]);
 
 f = fclose(f);
 toc;

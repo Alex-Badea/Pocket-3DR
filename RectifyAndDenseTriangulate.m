@@ -1,5 +1,5 @@
 function [X,Colors,ScreenedX,ScreenedColors,Disparity] =...
-    RectifyAndDenseTriangulate(im1,im2,F,KP1,KP2,CplotFlag)
+    RectifyAndDenseTriangulate(im1,im2,F,KP1,KP2,denoiseFlag,CplotFlag)
 %RECTIFYANDDENSETRIANGULATE Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -13,8 +13,8 @@ KP2Rec = H2*KP2;
 
 pars = [];
 pars.mu = -10.6;
-pars.window = 4;
-pars.zonegap = 4;
+pars.window = 5;
+pars.zonegap = 8;
 pars.pm_tau = 0.99;
 pars.tau = 0.7;
 Disparity = gcs(im1Rec, im2Rec, [], pars);
@@ -57,23 +57,37 @@ Colors = bsxfun(@(x,dummy) ...
     :),[3 2 1])), ...
     mc1Unr, 1:size(mc12Rec,2));
 
-ScreenedX1 = nan(size(Disparity));
-ScreenedX1(~isnan(Disparity)) = X(1,:);
-ScreenedX2 = nan(size(Disparity));
-ScreenedX2(~isnan(Disparity)) = X(2,:);
-ScreenedX3 = nan(size(Disparity));
-ScreenedX3(~isnan(Disparity)) = X(3,:);
-ScreenedX(:,:,1) = ScreenedX1;
-ScreenedX(:,:,2) = ScreenedX2;
-ScreenedX(:,:,3) = ScreenedX3;
+if exist('denoiseFlag','var') && strcmp(denoiseFlag,'denoise')
+    [~,inInd] = pcdenoise(pointCloud(X'), 'NumNeighbors', 50, 'Threshold', 0.1);
+    inInd = ismember(1:size(X,2), inInd);
+    X = X(:,inInd);
+    Colors = Colors(:,inInd);
+    
+    NotNanInd = ~isnan(Disparity);
+    NotNanAndNotNoiseInd = false(size(Disparity));
+    NotNanAndNotNoiseInd(NotNanInd==true) = inInd;
+    Ind = NotNanAndNotNoiseInd;
+else
+    Ind = ~isnan(Disparity);
+end
 
-ScreenedColors1 = nan(size(Disparity));
-ScreenedColors1(~isnan(Disparity)) = Colors(1,:);
-ScreenedColors2 = nan(size(Disparity));
-ScreenedColors2(~isnan(Disparity)) = Colors(2,:);
-ScreenedColors3 = nan(size(Disparity));
-ScreenedColors3(~isnan(Disparity)) = Colors(3,:);
-ScreenedColors(:,:,1) = ScreenedColors1;
-ScreenedColors(:,:,2) = ScreenedColors2;
-ScreenedColors(:,:,3) = ScreenedColors3;
+    ScreenedX1 = nan(size(Disparity));
+    ScreenedX1(Ind) = X(1,:);
+    ScreenedX2 = nan(size(Disparity));
+    ScreenedX2(Ind) = X(2,:);
+    ScreenedX3 = nan(size(Disparity));
+    ScreenedX3(Ind) = X(3,:);
+    ScreenedX(:,:,1) = ScreenedX1;
+    ScreenedX(:,:,2) = ScreenedX2;
+    ScreenedX(:,:,3) = ScreenedX3;
+
+    ScreenedColors1 = nan(size(Disparity));
+    ScreenedColors1(Ind) = Colors(1,:);
+    ScreenedColors2 = nan(size(Disparity));
+    ScreenedColors2(Ind) = Colors(2,:);
+    ScreenedColors3 = nan(size(Disparity));
+    ScreenedColors3(Ind) = Colors(3,:);
+    ScreenedColors(:,:,1) = ScreenedColors1;
+    ScreenedColors(:,:,2) = ScreenedColors2;
+    ScreenedColors(:,:,3) = ScreenedColors3;
 end
