@@ -9,6 +9,8 @@ hold on
 plot3([C(1) C(1)+windowScale*R(1,2)], [C(2) C(2)+windowScale*R(2,2)], [C(3) C(3)+windowScale*R(3,2)], 'g-');
 hold on
 plot3([C(1) C(1)+windowScale*R(1,1)], [C(2) C(2)+windowScale*R(2,1)], [C(3) C(3)+windowScale*R(3,1)], 'r-');
+hold on
+plot3([C(1) C(1)+windowScale*R(1,3)], [C(2) C(2)+windowScale*R(2,3)], [C(3) C(3)+windowScale*R(3,3)], 'b-');
 if nargin == 3
     handleP = plot3([windowPrime11(1), windowPrime12(1), windowPrime21(1), windowPrime22(1), windowPrime11(1), windowPrime21(1), windowPrime12(1), windowPrime22(1)],...
         [windowPrime11(2), windowPrime12(2), windowPrime21(2), windowPrime22(2), windowPrime11(2), windowPrime21(2), windowPrime12(2), windowPrime22(2)], ...

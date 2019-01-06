@@ -1,5 +1,6 @@
-function [ optimalHypothesis, inliersSet, outliersSet, elapsedSteps ] = ...
-    RANSAC( inputSet, hypothesisGeneratorFcn, minSampleSize, errorFcn, threshold )
+function [ optimalHypothesis, inliersSet, outliersSet, optimHypGenSamples,...
+    elapsedSteps] = RANSAC( inputSet, hypothesisGeneratorFcn, minSampleSize,...
+    errorFcn, threshold )
 %RANSAC Computes an optimal hypothesis based on the hypothesis generator on
 %the outlier-polluted input set
 %   This method runs RANSAC adaptively by providing, with each iteration, a
@@ -20,10 +21,6 @@ function [ optimalHypothesis, inliersSet, outliersSet, elapsedSteps ] = ...
 %   each member of the inputSet and representing its error;
 %   threshold - the maximum permited error value under which a sample is
 %   considered to be an inlier.
-% @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-% WILL IT WORK IF I CONSIDER THE HYPOGENFCN TO RETURN ONES SINGLE
-% HYPOTHESIS AND LET THE DISTANCEFCN TEST AGAINST THEM ALL AND PICK THE
-% BEST SINCE ITS BEING GIVEN ALL OF THE INPUTSET???????????????????????
 if ~iscell(inputSet)
     error('inputSet must be of cell type')
 end
@@ -33,6 +30,7 @@ bestSize = 0;
 bestHypothesis = [];
 bestInliersSet = {};
 bestOutliersSet = {};
+bestOptimHypGenSamples = [];
 
 step = 1;
 while step <= maxSteps
@@ -56,16 +54,18 @@ while step <= maxSteps
             bestHypothesis = crtHypothesis;
             bestInliersSet = inputSet(crtInliersInd);
             bestOutliersSet = inputSet(~crtInliersInd);
+            bestOptimHypGenSamples = crtSampleSet;
         end
     end
     e = 1 - crtSize/inputSize;
-    maxSteps = log(1-0.99) / log(1-(1-e)^2);
+    maxSteps = log(1-0.9999999999999999) / log(1-(1-e)^4);
     step = step + 1;
 end
 
 optimalHypothesis = bestHypothesis;
 inliersSet = bestInliersSet;
 outliersSet = bestOutliersSet;
+optimHypGenSamples = bestOptimHypGenSamples;
 elapsedSteps = step;
 end
 
