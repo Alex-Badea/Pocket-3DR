@@ -4,10 +4,15 @@ addpath(genpath(fileparts(which(mfilename))))
 dataset = 'cpl';
 calib = 'calib_AV_X2S_4MPIX.mat';
 drp = [1 ...
-    fix(length(dir([+'ims/' dataset '*.jpg']))/4)+1 ...
-    fix(2*length(dir(['ims/' dataset '*.jpg']))/4)+1 ...
-    fix(3*length(dir(['ims/' dataset '*.jpg']))/4)+1 ...
+    %fix(length(dir([+'ims/' dataset '*.jpg']))/8)+1 ...
+    fix(2*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
+    %fix(3*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
+    fix(4*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
+    %fix(5*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
+    fix(6*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
+    %fix(7*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
     ];
+
 %% Reading image dataset
 disp(['Running pipeline for dataset "' dataset '"'])
 imsDir = dir(['ims/' dataset '*.jpg']);      
@@ -53,7 +58,7 @@ for i = 1:imsNo-1
     CE{i} = OptimizeEssentialMatrix(CE{i}, CcorrsNormIn{i});
 end
 
-%% Background Filtering ######################## NEEDS MORE WORK: MAKE ADAPTIVE
+%% Background Filtering
 CEO = cell(1,imsNo-1);
 CcorrsNormInFil = cell(1,imsNo-1);
 for i = 1:imsNo-1
@@ -64,7 +69,7 @@ for i = 1:imsNo-1
     CEO{i} = OptimizeEssentialMatrix(CE{i}, CcorrsNormInFil{i});
 end
 
-%% Sparse Reconstruction ###################### NEEDS MORE WORK: MAKE PARALLEL
+%% Sparse Reconstruction
 disp('Pose estimation: default first pair')
 CP = cell(1,imsNo);
 CP{1} = CANONICAL_POSE; 
@@ -187,10 +192,22 @@ end
 
 PlotDense(cell2mat(CX),cell2mat(CC))
 
-%% Remeshing
-disp('Remeshing...')
-[CXFil,CCFil] = ReconstructPointCloud([dataset '-colored.ply'], CXSc, CCSc);
+%% Computing point set normals
+CXFil = cell(1,length(drp));
+CCFil = cell(1,length(drp));
+CNFil = cell(1,length(drp));
+for i = 1:length(drp)
+    disp(['Computing normals: set ' num2str(i) ' of ' num2str(length(drp))])
+    [CNFil{i}, filInd] = ComputeNormalsAndFilter(CXSc{i});
+    CXFil{i} = CX{i}(:,filInd);
+    CCFil{i} = CC{i}(:,filInd);
+end
 
 PlotDense(cell2mat(CXFil),cell2mat(CCFil))
 
-%% Remeshing & Retexturing
+%% Remeshing
+disp('Remeshing')
+RemeshToPly([dataset '-colored.ply'],...
+    cell2mat(CXFil), cell2mat(CNFil), cell2mat(CCFil))
+
+%% Retexturing

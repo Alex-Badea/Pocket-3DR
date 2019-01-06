@@ -13,8 +13,8 @@ KP2Rec = H2*KP2;
 
 pars = [];
 pars.mu = -10.6;
-pars.window = 5;
-pars.zonegap = 8;
+pars.window = 4;
+pars.zonegap = 7;
 pars.pm_tau = 0.99;
 pars.tau = 0.7;
 Disparity = gcs(im1Rec, im2Rec, [], pars);
@@ -58,7 +58,7 @@ Colors = bsxfun(@(x,dummy) ...
     mc1Unr, 1:size(mc12Rec,2));
 
 if exist('denoiseFlag','var') && strcmp(denoiseFlag,'denoise')
-    [~,inInd] = pcdenoise(pointCloud(X'), 'NumNeighbors', 50, 'Threshold', 0.1);
+    [~,inInd] = pcdenoise(pointCloud(X'), 'NumNeighbors', 100, 'Threshold', 0.1);
     inInd = ismember(1:size(X,2), inInd);
     X = X(:,inInd);
     Colors = Colors(:,inInd);
