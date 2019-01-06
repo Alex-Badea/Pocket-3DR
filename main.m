@@ -1,8 +1,4 @@
 addpath(genpath(fileparts(which(mfilename))))
-<<<<<<< HEAD
-dataset = 'csk';
-load('calib_AV_P9L_2MPIX.mat')
-=======
 
 %% Program arguments
 dataset = 'cpl';
@@ -16,7 +12,6 @@ drp = [1 ...
     fix(6*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
     %fix(7*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
     ];
->>>>>>> Testing
 
 %% Reading image dataset
 disp(['Running pipeline for dataset "' dataset '"'])
@@ -134,33 +129,6 @@ for i = 2:imsNo-1
     end
 end
 
-<<<<<<< HEAD
-%% Bundle Adjustment
-C = CascadeTrack(CcorrsNormInFil);
-X = TriangulateCascade(CP,C);
-CP_ = BundleAdjustment(CP,X,C);
-return
-%% Dense reconstruction
-CX = cell(1,imsNo-1);
-for i = 1:imsNo-1
-    disp(['Dense reconstruction ' num2str(i) '/' num2str(imsNo-1)])
-    F = K'\CE{i,i+1}/K;
-    [H1, H2, im1Rec, im2Rec] = rectify(F, Cim{i}, Cim{i+1});
-    im1Rec(im1Rec==0) = -1;
-    KP1Rec = H1*K*CP{i};
-    KP2Rec = H2*K*CP{i+1};
-
-    pars = [];
-    pars.mu = -10.6;
-    pars.window = 4;
-    pars.zonegap = 10;
-    pars.pm_tau = 0.95;
-    D = gcs(im1Rec, im2Rec, [], pars);
-    mc12Rec = CorrsFromDisparity(D);
-    x1Rec = mc12Rec(1:2,:);
-    x2Rec = mc12Rec(3:4,:);
-    CX{i} = LinearTriangulation(KP1Rec, KP2Rec, x1Rec, x2Rec);
-=======
 disp('Last Local Bundle Adjustments...')
 if imsNo > LOCALBA_OCCUR_PER1
     disp(['Refine ' num2str((imsNo-1)-(LOCALBA_OCCUR_PER1-2)) '->' num2str(imsNo)])
@@ -170,7 +138,6 @@ if imsNo > LOCALBA_OCCUR_PER1
         CPBA = BundleAdjustment(CP((imsNo-1)-(LOCALBA_OCCUR_PER1-2) : imsNo), C);
         CP((imsNo-1)-(LOCALBA_OCCUR_PER1-2) : imsNo) = CPBA;
     end
->>>>>>> Testing
 end
 if imsNo > LOCALBA_OCCUR_PER2
     disp(['Refine ' num2str((imsNo-1)-(LOCALBA_OCCUR_PER2-2)) '->' num2str(imsNo)])
