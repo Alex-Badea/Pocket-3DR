@@ -3,7 +3,7 @@ A MATLAB implementation of a full 3D Reconstruction pipeline using the functions
 - Tips:
   - It is highly recommended that you calibrate for the distorsion parameters as well when dealing with high-depth background images, else reconstruction might fail;
   - The reconstruction fails for [non-Lambertian objects](https://en.wikipedia.org/wiki/Lambertian_reflectance) (see image set "car") due to inconsistency of features between scenes;
-  - If the script fails with "Transitivity 0", rerun the program. You might have stumbled upon an unfortunate Essential Matrix estimation. If it fails again, the problem might be in the Calibration Matrix.
+  - If the script fails with "Transitivity 0", rerun the program. You might have stumbled upon an unfortunate Essential Matrix estimation. If it fails again, the camera might have been badly calibrated.
 - Check out some samples below (full image sets in repo):
 
 #### cpl: 47 images
