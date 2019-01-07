@@ -10,6 +10,7 @@ A MATLAB implementation of a full 3D Reconstruction pipeline using the functions
 + High disparity background filtering
 + Dense reconstruction from n>2 images
 + Background cropping for Dense Reconstruction
++ Recoloring
 - Parallel (Multi-core)
 - Retexturing
 ```
