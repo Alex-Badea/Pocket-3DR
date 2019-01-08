@@ -1,7 +1,7 @@
 addpath(genpath(fileparts(which(mfilename))))
 
 %% Program arguments
-dataset = 'car';
+dataset = 'cpl';
 calib = 'calib_AV_X2S_4MPIX.mat';
 % Dense reconstruction pairs
 drp = [1 ...
