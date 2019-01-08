@@ -1,4 +1,0 @@
-- BACKGROUND FILTERING WITH ADAPTIVE BIN SIZE SINCE ABSOLUTE SCALE IS IN RELATION WITH TRANSLATION MAGNITUDE
-- stepwise consistency check: if something goes wrong let user fix it
-- make the code multicore
-- retexture
