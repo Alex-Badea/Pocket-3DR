@@ -1,8 +1,9 @@
 addpath(genpath(fileparts(which(mfilename))))
 
 %% Program arguments
-dataset = 'mer';
+dataset = 'car';
 calib = 'calib_AV_X2S_4MPIX.mat';
+% Dense reconstruction pairs
 drp = [1 ...
     fix(length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
     fix(2*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
@@ -15,7 +16,7 @@ drp = [1 ...
 
 %% Reading image dataset
 disp(['Running pipeline for dataset "' dataset '"'])
-imsDir = dir(['ims/' dataset '*.jpg']);      
+imsDir = dir(['ims/' dataset '*.jpg']);
 disp(['Dataset contains ' num2str(length(imsDir)) ' images'])
 load(calib)
 disp('Calibration matrix: '), disp(K)
