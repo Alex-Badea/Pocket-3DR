@@ -5,13 +5,13 @@ dataset = 'cpl';
 calib = 'calib_AV_X2S_4MPIX.mat';
 % Dense reconstruction pairs
 drp = [1 ...
-    fix(length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
-    fix(2*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
-    fix(3*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
-    fix(4*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
-    fix(5*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
+    %fix(length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
+    %fix(2*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
+    %fix(3*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
+    %fix(4*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
+    %fix(5*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
     fix(6*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
-    fix(7*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
+    %fix(7*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
     ];
 
 %% Reading image dataset
@@ -40,41 +40,48 @@ for i = 1:imsNo
     disp(['Feature points estimation: image ' num2str(i) ' of ' num2str(imsNo)])
     CfeatPts{i} = EstimateFeaturePoints(Cim{i});
 end
-CcorrsNorm = cell(1,imsNo-1);
 Ccorrs = cell(1,imsNo-1);
 for i = 1:imsNo-1
     disp(['Feature matching: pair ' num2str(i) ' of ' num2str(imsNo-1)])
     Ccorrs{i} = MatchFeaturePoints(CfeatPts{i}, CfeatPts{i+1});
-    CcorrsNorm{i} = NormalizeCorrs(Ccorrs{i},K);
 end
 
-%% Essential Matrix estimation
-CcorrsNormIn = cell(1,imsNo-1);
-CE = cell(1,imsNo-1);
+%% Fundamental Matrix estimation
+CcorrsIn = cell(1,imsNo-1);
+CF = cell(1,imsNo-1);
 for i = 1:imsNo-1
-    disp(['Essential Matrix estimation: pair ' num2str(i) ' of ' num2str(imsNo-1)])
-    [CE{i}, Cinliers] = RANSAC(num2cell(CcorrsNorm{i},1),...
-        @EstimateEssentialMatrix, 5, @SampsonDistance, 1e-6);
-    CcorrsNormIn{i} = cell2mat(Cinliers);
-    CE{i} = OptimizeEssentialMatrix(CE{i}, CcorrsNormIn{i});
+    disp(['Fundamental Matrix estimation: pair ' num2str(i) ' of ' num2str(imsNo-1)])
+    [CF{i}, Cinliers] = RANSAC(num2cell(Ccorrs{i},1),...
+        @EstimateFundamentalMatrix, 8, @SampsonDistance, 10);
+    CcorrsIn{i} = cell2mat(Cinliers);
+    CF(i) = EstimateFundamentalMatrix(Cinliers);
 end
 
 %% Background Filtering
-CEO = cell(1,imsNo-1);
-CcorrsNormInFil = cell(1,imsNo-1);
+CcorrsInFil = cell(1,imsNo-1);
 for i = 1:imsNo-1
     disp(['Background Filtering: pair ' num2str(i) ' of ' num2str(imsNo-1)])
-    P = EstimateRealPose(CE{i}, CcorrsNormIn{i});
-    CcorrsNormInFil{i} = FilterBackgroundFromCorrs(CANONICAL_POSE, P,...
-        CcorrsNormIn{i});
-    CEO{i} = OptimizeEssentialMatrix(CE{i}, CcorrsNormInFil{i});
+    P = EstimateRealPose(K'*CF{i}*K, NormalizeCorrs(CcorrsIn{i},K));
+    CcorrsInFil{i} = FilterBackgroundFromCorrs(...
+        K*CANONICAL_POSE, K*P, CcorrsIn{i}, 3);
+    CF(i) = EstimateFundamentalMatrix(num2cell(CcorrsInFil{i},1));
 end
 
-%% Sparse Reconstruction
+%% Essential Matrix from Fundamental Matrix
+CE = cell(1,imsNo-1);
+CcorrsNormInFil = cell(1,imsNo-1);
+for i = 1:imsNo-1
+    disp(['Essential Matrix from Fundamental Matrix: '...
+        num2str(i) ' of ' num2str(imsNo-1)])
+    CE{i} = K'*CF{i}*K/norm(K'*CF{i}*K)*sqrt(2)/2;
+    CcorrsNormInFil{i} = NormalizeCorrs(CcorrsInFil{i}, K);
+end
+
+%% Structure from Motion
 disp('Pose estimation: default first pair')
 CP = cell(1,imsNo);
 CP{1} = CANONICAL_POSE; 
-CP{2} = EstimateRealPose(CEO{1}, CcorrsNormInFil{1});
+CP{2} = EstimateRealPose(CE{1}, CcorrsNormInFil{1});
 
 LOCALBA_OCCUR_PER1 = 4;
 LOCALBA_OCCUR_PER2 = 6;
@@ -82,7 +89,7 @@ LOCALBA_OCCUR_PER3 = 8;
 LOCALBA_OCCUR_PER4 = 10;
 for i = 2:imsNo-1
     disp(['Pose estimation: ' num2str(i+1) ' of ' num2str(imsNo)])
-    CP{i+1} = EstimateRealPose(CEO{i}, CcorrsNormInFil{i}, CP{i});
+    CP{i+1} = EstimateRealPose(CE{i}, CcorrsNormInFil{i}, CP{i});
     TrackedCorrs = CascadeTrack({CcorrsNormInFil{i-1}, CcorrsNormInFil{i}});
     TrackedCorrsIso = IsolateTransitiveCorrs(TrackedCorrs);
     disp(['Transitivity: ' num2str(size(TrackedCorrsIso,2))])
@@ -175,25 +182,25 @@ X = TriangulateCascade(CPBA,C);
 
 PlotSparse(CP,X);
 
-%% Dense Reconstruction
+%% Dense Matching
 CX = cell(1,length(drp));
 CC = cell(1,length(drp));
 CXSc = cell(1,length(drp));
 CCSc = cell(1,length(drp));
 for i = 1:length(drp)
-    disp(['Dense Reconstruction: pair ' num2str(i) ' of ' num2str(length(drp))])
+    disp(['Dense Matching: pair ' num2str(i) ' of ' num2str(length(drp))])
     [CX{i}, CC{i}, CXSc{i}, CCSc{i}] = RectifyAndDenseTriangulate(...
         CropBackground(...
-        Cim{drp(i)},Unnormalize(CcorrsNormInFil{drp(i)}(1:2,:),K),1.1),...
+        Cim{drp(i)},CcorrsInFil{drp(i)}(1:2,:),1.1),...
         CropBackground(...
-        Cim{drp(i)+1},Unnormalize(CcorrsNormInFil{drp(i)}(3:4,:),K),1.1),...
-        K'\CEO{drp(i)}/K, K*CP{drp(i)}, K*CP{drp(i)+1}, 'denoise',...
+        Cim{drp(i)+1},CcorrsInFil{drp(i)}(3:4,:),1.1),...
+        CF{drp(i)}, K*CP{drp(i)}, K*CP{drp(i)+1}, 'denoise',...
         {'plotCorrespondences','plotDisparityMap'});
 end
 
 PlotDense(cell2mat(CX),cell2mat(CC))
 
-%% Computing point set normals
+%% Remeshing and Recoloring
 CXFil = cell(1,length(drp));
 CCFil = cell(1,length(drp));
 CNFil = cell(1,length(drp));
@@ -204,11 +211,10 @@ for i = 1:length(drp)
     CCFil{i} = CC{i}(:,filInd);
 end
 
-PlotDense(cell2mat(CXFil),cell2mat(CCFil))
-
-%% Remeshing
 disp('Remeshing')
 RemeshToPly([dataset '-colored.ply'],...
     cell2mat(CXFil), cell2mat(CNFil), cell2mat(CCFil))
+
+PlotDense(cell2mat(CXFil),cell2mat(CCFil))
 
 %% Retexturing
