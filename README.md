@@ -11,12 +11,12 @@ A MATLAB implementation of a full 3D Reconstruction pipeline using the functions
 <img src="https://i.ibb.co/DbTk8sS/cpl01.jpg" height="250"> <img src="https://i.ibb.co/R661gv7/cpl.gif" height="250">
 <img src="https://i.ibb.co/qNnKgQ4/cpl.jpg" width="602">
 
-#### mer: 51 images
+#### csk: 41 images
   
 <img src="https://i.ibb.co/QY63ZmV/csk01.jpg" height="250"> <img src="https://i.ibb.co/S6NmZwY/csk.gif" height="250">
 <img src="https://i.ibb.co/mCX9b9s/csk.jpg" width="602">
 
-#### csk: 41 images
+#### mer: 51 images
   
 <img src="https://i.ibb.co/5hdjbBS/mer01.jpg" height="250"> <img src="https://i.ibb.co/dtRPDxV/mer.gif" height="250">
 <img src="https://i.ibb.co/ys26mnk/mer.jpg" width="602">
