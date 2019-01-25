@@ -17,14 +17,14 @@ if strcmp(mode,'overlay')
     imBlend = imfuse(im1,im2);
     figure
     imshow(imBlend), drawnow, hold on
-    plot([x1(1,:); x2(1,:)], [x1(2,:); x2(2,:)], 'k', 'LineWidth', 1.5), drawnow
-    plot(x1(1,:), x1(2,:), 'ko', 'MarkerSize', 3, 'LineWidth', 1.5), drawnow
+    plot([x1(1,:); x2(1,:)], [x1(2,:); x2(2,:)], 'k', 'LineWidth', 1), drawnow
+    plot(x1(1,:), x1(2,:), 'ko', 'MarkerSize', 3, 'LineWidth', 0.8), drawnow
 
     if exist('x1Inliers', 'var') && exist('x2Inliers', 'var')
         plot([x1Inliers(1,:); x2Inliers(1,:)], [x1Inliers(2,:); x2Inliers(2,:)], ...
-            'b', 'LineWidth', 1.5), drawnow
+            'b', 'LineWidth', 1), drawnow
         plot(x1Inliers(1,:), x1Inliers(2,:), ...
-            'bo', 'MarkerSize', 3, 'LineWidth', 1.5), drawnow
+            'bo', 'MarkerSize', 3, 'LineWidth', 0.8), drawnow
     end
     hold off
 elseif strcmp(mode, 'sideBySide')
