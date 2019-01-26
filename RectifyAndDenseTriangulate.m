@@ -1,5 +1,5 @@
 function [X,Colors,ScreenedX,ScreenedColors,Disparity] =...
-    RectifyAndDenseTriangulate(im1,im2,F,KP1,KP2,denoiseFlag,mode,CplotFlag)
+    RectifyAndDenseTriangulate(im1,im2,F,KP1,KP2,mode,denoiseFlag,CplotFlag)
 %RECTIFYANDDENSETRIANGULATE Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -47,7 +47,7 @@ elseif strcmp(mode,'auto')
 end
 mc12Rec = CorrsFromDisparity(Disparity);
 
-X = Triangulate(KP1Rec, KP2Rec, mc12Rec(1:4,:));
+X = Triangulate(KP1Rec, KP2Rec, mc12Rec);
 
 sz = [size(im1,1) size(im1,2)];
 mc1Unr = [fix(Dehomogenize(H1\Homogenize(mc12Rec(1:2,:))));
