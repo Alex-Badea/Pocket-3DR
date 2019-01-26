@@ -1,5 +1,5 @@
 function [X,Colors,ScreenedX,ScreenedColors,Disparity] =...
-    RectifyAndDenseTriangulate(im1,im2,F,KP1,KP2,denoiseFlag,CplotFlag)
+    RectifyAndDenseTriangulate(im1,im2,F,KP1,KP2,mode,denoiseFlag,CplotFlag)
 %RECTIFYANDDENSETRIANGULATE Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -34,6 +34,7 @@ if exist('CplotFlag','var')
     end
 end
 
+if strcmp(mode,'manual')
 h = figure('pos', [0 100 getfield(get(0,'screensize'),{3}) 300]);
 set(0,'CurrentFigure',h)
 histogram(Disparity,1000), drawnow
@@ -43,9 +44,11 @@ ub = ginput(1);
 hold on, plot([lb(1) ub(1)], [0 0], 'rx', 'LineWidth', 2), drawnow
 hold off, close(gcf)
 Disparity(Disparity<lb(1) | Disparity>ub(1)) = nan;
+elseif strcmp(mode,'auto')
+end
 mc12Rec = CorrsFromDisparity(Disparity);
 
-X = Triangulate(KP1Rec, KP2Rec, mc12Rec(1:4,:));
+X = Triangulate(KP1Rec, KP2Rec, mc12Rec);
 
 sz = [size(im1,1) size(im1,2)];
 mc1Unr = [fix(Dehomogenize(H1\Homogenize(mc12Rec(1:2,:))));
