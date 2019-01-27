@@ -58,7 +58,7 @@ while step <= maxSteps
         end
     end
     e = 1 - crtSize/inputSize;
-    maxSteps = abs(log(1-0.9999999999999999) / log(1-(1-e)^6));
+    maxSteps = abs(log(1-0.9999999999999999) / log(1-(1-e)^10));
     step = step + 1;
 end
 

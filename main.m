@@ -13,7 +13,7 @@ drp = [1 ...
     fix(6*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
     %fix(7*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
     ];
-threads = 1;
+threads = 6;
 
 %% Reading image dataset
 disp(['Running pipeline for dataset "' dataset '"'])
@@ -46,7 +46,6 @@ for i = 1:imsNo
     CfeatPts{i} = EstimateFeaturePoints(Cim{i});
 end
 CcorrsNorm = cell(1,imsNo-1);
-
 CfeatPtsPlusOne = CfeatPts(2:end);
 parfor i = 1:imsNo-1
     disp(['Feature matching: pair ' num2str(i) ' of ' num2str(imsNo-1)])
@@ -91,7 +90,7 @@ for i = 2:imsNo-1
     TrackedCorrs = CascadeTrack({CcorrsNormInFil{i-1}, CcorrsNormInFil{i}});
     TrackedCorrsIso = IsolateTransitiveCorrs(TrackedCorrs);
     disp(['Transitivity: ' num2str(size(TrackedCorrsIso,2))])
-    CP{i+1} = OptimizeTranslationVector(CP{i-1}, CP{i}, CP{i+1}, TrackedCorrsIso);
+    CP{i+1} = OptimizeTranslationBaseline(CP{i-1}, CP{i}, CP{i+1}, TrackedCorrsIso);
     CP{i+1} = MiniBundleAdjustment(CP{i-1}, CP{i}, CP{i+1}, TrackedCorrsIso);
     
     if ~mod(i-1, LOCALBA_OCCUR_PER1-2)
@@ -174,7 +173,6 @@ if imsNo > LOCALBA_OCCUR_PER4
     end
 end
 
-%% Global Bundle Adjustment
 disp('Global Bundle Adjustment')
 C = CascadeTrack(CcorrsNormInFil);
 CPBA = BundleAdjustment(CP,C);
@@ -203,12 +201,12 @@ parfor i = 1:length(drp)
 end
 
 PlotDense(cell2mat(CX),cell2mat(CC))
-return
-%% Computing point set normals
+
+%% Remeshing
 CXFil = cell(1,length(drp));
 CCFil = cell(1,length(drp));
 CNFil = cell(1,length(drp));
-for i = 1:length(drp)
+parfor i = 1:length(drp)
     disp(['Computing normals: set ' num2str(i) ' of ' num2str(length(drp))])
     [CNFil{i}, filInd] = ComputeNormalsAndFilter(CXSc{i});
     CXFil{i} = CX{i}(:,filInd);

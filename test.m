@@ -1,19 +1,23 @@
-load('calib_AV_X2S_4MPIX.mat')
+i=1;
 
-im1 = imread('mer01.jpg');
-im2 = imread('mer02.jpg');
-Cim = UndistortImages({im1,im2},K,d);
-im1 = Cim{1};
-im2 = Cim{2};
+E1 = CE{i};
+E2 = CE{i+1};
 
-fp1 = EstimateFeaturePoints(im1);
-fp2 = EstimateFeaturePoints(im2);
+P1 = CP{i};
+P2 = CP{i+1};
+P3 = EstimateRealPose(E2, CcorrsNormInFil{i+1}, P2);
+P3i = OptimizeTranslationBaseline(P1,P2,P3,IsolateTransitiveCorrs(CascadeTrack(CcorrsNormInFil(i:i+1))));
+%P3i = MiniBundleAdjustment(P1,P2,P3i,IsolateTransitiveCorrs(CascadeTrack(CcorrsNormInFil(i:i+1))));
+C1 = -P1(1:3,1:3)'*P1(:,end);
+C2 = -P2(1:3,1:3)'*P2(:,end);
+C3 = -P3(1:3,1:3)'*P3(:,end); 
+C3i = -P3i(1:3,1:3)'*P3i(:,end);
 
-corrs12 = MatchFeaturePoints(fp1,fp2);
+C2C3 = C3-C2;
+C2C3i = C3i-C2;
+C2C3i./C2C3
 
-corrs12n = NormalizeCorrs(corrs12,K);
-[E,Ccorrs12nin,~,g] = RANSAC(num2cell(corrs12n,1),...
-    @EstimateFundamentalMatrix,8,@SampsonDistance,1e-6);
-corrs12in = UnnormalizeCorrs(cell2mat(Ccorrs12nin),K);
-
-PlotCorrespondences(im1,im2,corrs12,corrs12in);
+X1 = Triangulate(P1,P2,CcorrsNormInFil{i});
+X2 = Triangulate(P2,P3i,CcorrsNormInFil{i+1});
+PlotSparse({P1,P2,P3,P3i},[X1 X2])
+hold on, plot3(C3(1),C3(2),C3(3),'gx'),hold on,plot3(C2(1),C2(2),C2(3),'rx'),hold on;plot3(C3i(1),C3i(2),C3i(3),'bx')
