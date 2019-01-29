@@ -13,7 +13,7 @@ drp = [1 ...
     fix(6*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
     %fix(7*length(dir(['ims/' dataset '*.jpg']))/8)+1 ...
     ];
-threads = 6;
+threads = 1;
 
 %% Reading image dataset
 disp(['Running pipeline for dataset "' dataset '"'])
@@ -41,7 +41,7 @@ end
 
 %% Computing correspondences
 CfeatPts = cell(1,imsNo);
-for i = 1:imsNo
+parfor i = 1:imsNo
     disp(['Feature points estimation: image ' num2str(i) ' of ' num2str(imsNo)])
     CfeatPts{i} = EstimateFeaturePoints(Cim{i});
 end
@@ -91,7 +91,7 @@ for i = 2:imsNo-1
     TrackedCorrsIso = IsolateTransitiveCorrs(TrackedCorrs);
     disp(['Transitivity: ' num2str(size(TrackedCorrsIso,2))])
     CP{i+1} = OptimizeTranslationBaseline(CP{i-1}, CP{i}, CP{i+1}, TrackedCorrsIso);
-    CP{i+1} = MiniBundleAdjustment(CP{i-1}, CP{i}, CP{i+1}, TrackedCorrsIso);
+    %CP{i+1} = MiniBundleAdjustment(CP{i-1}, CP{i}, CP{i+1}, TrackedCorrsIso);
     
     if ~mod(i-1, LOCALBA_OCCUR_PER1-2)
         disp('Local Bundle Adjustment 1...')
@@ -178,8 +178,8 @@ C = CascadeTrack(CcorrsNormInFil);
 CPBA = BundleAdjustment(CP,C);
 X = TriangulateCascade(CPBA,C);
 
-PlotSparse(CP,X);
-
+PlotSparse(CPBA,X);
+return
 %% Dense Matching
 CX = cell(1,length(drp));
 CC = cell(1,length(drp));
@@ -216,7 +216,5 @@ end
 disp('Remeshing')
 RemeshToPly([dataset '-colored.ply'],...
     cell2mat(CXFil), cell2mat(CNFil), cell2mat(CCFil))
-
-PlotDense(cell2mat(CXFil),cell2mat(CCFil))
 
 %% Retexturing
