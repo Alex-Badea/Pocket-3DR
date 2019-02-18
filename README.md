@@ -32,10 +32,11 @@ A MATLAB implementation of a full 3D Reconstruction pipeline using the functions
 + Dense reconstruction from n>2 images
 + Background cropping for Dense Reconstruction
 + Recoloring
++ Parallel (Multi-core)
 - Documentation (Romanian)
 - Documentation (English)
-- Parallel (Multi-core)
 - Retexturing
 - Background filtering with adaptive bin size (since absolute scale is in relation with translation magnitude)
 - Stepwise consistency check (if something goes wrong either let the user fix it or rerun the same block again)
+- Parallelize SfM as well
 ```
