@@ -18,10 +18,6 @@ pars.zonegap = 7;
 pars.pm_tau = 0.99;
 pars.tau = 0.7;
 Disparity = gcs(im1Rec, im2Rec, [], pars);
-if all(all(isnan(Disparity)))
-    imshow(imfuse(im1RecPlt,im2RecPlt))
-    error('No matches found')
-end
 
 if exist('CplotFlag','var')
     if any(contains(CplotFlag, 'plotCorrespondences'))
@@ -56,7 +52,7 @@ if numel(zRange) == 2
     X_ = X;
     
     X = Triangulate(H1*K*CANONICAL_POSE, H2*K*DehomogenizeMat(HomogenizeMat(P2)/...
-        HomogenizeMat(P1)), mc12Rec);    
+        HomogenizeMat(P1)), mc12Rec);
     inInd = X(3,:) > zRange(1) & X(3,:) < zRange(2);
     NotNanInd = ~isnan(Disparity);
     NotNanAndNotBackgroundInd = false(size(Disparity));

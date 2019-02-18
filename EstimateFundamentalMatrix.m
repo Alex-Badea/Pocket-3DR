@@ -9,30 +9,10 @@ x = cell2mat(Cx);
 x1 = x(1:2,:);
 x2 = x(3:4,:);
 
-if strcmp(algorithm, 'Norm7PtAlg')
-    Fs = EstimateFundamentalMatrixNorm7PtAlg(x1, x2);
-    if isempty(Fs)
-        CF = {};
-    else
-        CF = cell(1,size(Fs,3));
-        for i = 1:size(Fs,3)
-            CF{i} = Fs(:,:,i)/norm(Fs(:,:,i));
-        end
-    end
-elseif strcmp(algorithm, 'Norm8PtAlg')
+if strcmp(algorithm, 'Norm8PtAlg')
     F = EstimateFundamentalMatrixNorm8PtAlg(x1, x2);
     F = F/norm(F);
     CF = {F};
-elseif strcmp(algorithm, '7PtAlg')
-    Fs = EstimateFundamentalMatrix7PtAlg(x1, x2);
-    if isempty(Fs)
-        CF = {};
-    else
-        CF = cell(1,size(Fs,3));
-        for i = 1:size(Fs,3)
-            CF{i} = Fs(:,:,i)/norm(Fs(:,:,i));
-        end
-    end
 elseif strcmp(algorithm, '8PtAlg')
     F = EstimateFundamentalMatrix8PtAlg(x1, x2);
     F = F/norm(F);
@@ -40,23 +20,6 @@ elseif strcmp(algorithm, '8PtAlg')
 else
     error(['Algorithm ' algorithm ' does not exist'])
 end
-end
-
-function Fs = EstimateFundamentalMatrixNorm7PtAlg(x1, x2)
-[x1,T1] = normalizePoints(x1);
-[x2,T2] = normalizePoints(x2);
-
-Fs = vgg_F_from_7pts_2img(Homogenize(x1), Homogenize(x2));
-
-for i = 1:size(Fs,3)
-    if ~isempty(Fs(:,:,i))
-        Fs(:,:,i) = [T2; [0 0 1]]'*Fs(:,:,i)*[T1; [0 0 1]];
-    end
-end
-end
-
-function Fs = EstimateFundamentalMatrix7PtAlg(x1, x2)
-Fs = vgg_F_from_7pts_2img(Homogenize(x1), Homogenize(x2));
 end
 
 function F = EstimateFundamentalMatrixNorm8PtAlg(x1, x2)

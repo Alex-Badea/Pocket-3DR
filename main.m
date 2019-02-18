@@ -1,7 +1,7 @@
 addpath(genpath(fileparts(which(mfilename))))
 
 %% Program arguments
-dataset = 'uni';
+dataset = 'mer';
 calib = 'calib_AV_X2S_4MPIX.mat';
 drp = [...
     1 ...
@@ -99,7 +99,7 @@ for i = 2:imsNo-1
         if size(C,2) > 1
             CPBA = BundleAdjustment(CP(i-(LOCALBA_OCCUR_PER1-2) : i+1), C);
             CP(i-(LOCALBA_OCCUR_PER1-2) : i+1) = CPBA;
-    end
+        end
     end
     if ~mod(i-1, LOCALBA_OCCUR_PER2-2)
         disp('Local Bundle Adjustment 1...')
