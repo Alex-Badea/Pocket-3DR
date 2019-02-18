@@ -41,38 +41,46 @@ for i = 1:imsNo
     CfeatPts{i} = EstimateFeaturePoints(Cim{i});
 end
 
-CcorrsNorm = cell(1,imsNo-1);
+Ccorrs = cell(1,imsNo-1);
 CfeatPtsPlusOne = CfeatPts(2:end);
 parfor i = 1:imsNo-1
     disp(['Feature matching: pair ' num2str(i) ' of ' num2str(imsNo-1)])
-    CcorrsNorm{i} = NormalizeCorrs(...
-        MatchFeaturePoints(CfeatPts{i}, CfeatPtsPlusOne{i}), K);
+    Ccorrs{i} = MatchFeaturePoints(CfeatPts{i}, CfeatPtsPlusOne{i});
 end
 
 %% Correspondence filtering
-CcorrsNormIn = cell(1,imsNo-1);
-CE = cell(1,imsNo-1);
+CcorrsIn = cell(1,imsNo-1);
+CF = cell(1,imsNo-1);
 parfor i = 1:imsNo-1
     disp(['Correspondence filtering: pair ' num2str(i) ' of ' num2str(imsNo-1)])
-    [CE{i}, Cinliers] = RANSAC(num2cell(CcorrsNorm{i},1),...
-        @EstimateFundamentalMatrix, 8, @SampsonDistance, 1e-6);
-    CcorrsNormIn{i} = cell2mat(Cinliers);
+    [CF{i}, Cinliers] = RANSAC(num2cell(Ccorrs{i},1),...
+        @EstimateFundamentalMatrix, 8, @SampsonDistance, 12);
+    CcorrsIn{i} = cell2mat(Cinliers);
 end
 
-%% Essential Matrix estimation
+%% Fundamental Matrix estimation
 parfor i = 1:imsNo-1
-    disp(['Essential Matrix estimation: pair ' num2str(i) ' of ' num2str(imsNo-1)])
-    CE(i) = EstimateFundamentalMatrix(num2cell(CcorrsNormIn{i},1));
+    disp(['Fundamental Matrix estimation: pair ' num2str(i) ' of ' num2str(imsNo-1)])
+    CF(i) = EstimateFundamentalMatrix(num2cell(CcorrsIn{i},1));
 end
 
 %% Background Filtering
-CcorrsNormInFil = cell(1,imsNo-1);
+CcorrsInFil = cell(1,imsNo-1);
 parfor i = 1:imsNo-1
     disp(['Background Filtering: pair ' num2str(i) ' of ' num2str(imsNo-1)])
-    CcorrsNormInFil{i} = FilterBackgroundFromCorrs(...
-        CANONICAL_POSE, EstimateRealPose(CE{i}, CcorrsNormIn{i}), CcorrsNormIn{i});
-    disp([num2str(size(CcorrsNormInFil{i},2)) ' correspondences kept'])
-    CE(i) = EstimateFundamentalMatrix(num2cell(CcorrsNormInFil{i},1));
+    CcorrsInFil{i} = FilterBackgroundFromCorrs(K*CANONICAL_POSE,...
+        K*EstimateRealPose(K'*CF{i}*K, NormalizeCorrs(CcorrsIn{i},K)), CcorrsIn{i});
+    CF(i) = EstimateFundamentalMatrix(num2cell(CcorrsInFil{i},1));
+end
+
+%% Essential Matrix from Fundamental Matrix
+CE = cell(1,imsNo-1);
+CcorrsNormInFil = cell(1,imsNo-1);
+for i = 1:imsNo-1
+    disp(['Essential Matrix from Fundamental Matrix: '...
+        num2str(i) ' of ' num2str(imsNo-1)])
+    CE{i} = K'*CF{i}*K/norm(K'*CF{i}*K)*sqrt(2)/2;
+    CcorrsNormInFil{i} = NormalizeCorrs(CcorrsInFil{i}, K);
 end
 
 %% Structure from Motion
@@ -102,7 +110,7 @@ for i = 2:imsNo-1
         end
     end
     if ~mod(i-1, LOCALBA_OCCUR_PER2-2)
-        disp('Local Bundle Adjustment 1...')
+        disp('Local Bundle Adjustment 2...')
         disp(['Refine ' num2str(i-(LOCALBA_OCCUR_PER2-2)) '->' num2str(i+1)])
         C = IsolateTransitiveCorrs(CascadeTrack(...
             CcorrsNormInFil(i-(LOCALBA_OCCUR_PER2-2) : i)), 'displaySize');
@@ -147,7 +155,7 @@ CCSc = cell(1,length(drp));
 CimDrp = Cim(drp);
 CimDrpPlusOne = Cim(drp+1);
 CcorrsNormInFilDrp = CcorrsNormInFil(drp);
-CEDrp = CE(drp);
+CFDrp = CF(drp);
 CPDrp = CP(drp);
 CPDrpPlusOne = CP(drp+1);
 for i = 1:length(drp)
@@ -158,7 +166,7 @@ for i = 1:length(drp)
     [CX{i}, CC{i}, CXSc{i}, CCSc{i}] = RectifyAndDenseTriangulate(CropBackground(...
         CimDrp{i},Unnormalize(CcorrsNormInFilDrp{i}(1:2,:),K),1.1),...
         CropBackground(CimDrpPlusOne{i},Unnormalize(CcorrsNormInFilDrp{i}(3:4,:),...
-        K),1.1), K'\CEDrp{i}/K, K, CPDrp{i}, CPDrpPlusOne{i}, zRange);
+        K),1.1), CFDrp{i}, K, CPDrp{i}, CPDrpPlusOne{i}, zRange);
 end
 
 MakePly([dataset '-dense.ply'], cell2mat(CX), [], cell2mat(CC)) 
