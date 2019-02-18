@@ -9,27 +9,27 @@ ROI = [10 10 size(im,2)-20 size(im,1)-20];
 if strcmp(method,'SURF')
     kPts = detectSURFFeatures(rgb2gray(im), 'MetricThreshold', 100, 'ROI', ROI);
     [desc,kPts] = extractFeatures(rgb2gray(im), kPts, 'Method', 'Auto',...
-        'Upright', true);
+        'Upright', false);
     loc = kPts.Location';
     fPts = {loc,desc};
 elseif strcmp(method,'KAZE')
-    kPts = detectKAZEFeatures(rgb2gray(im), 'Threshold', 1e-4, 'ROI', ROI);
+    kPts = detectKAZEFeatures(rgb2gray(im), 'Threshold', 2e-4, 'ROI', ROI);
     [desc,kPts] = extractFeatures(rgb2gray(im), kPts, 'Method', 'Auto',...
-        'Upright', true);
+        'Upright', false);
     loc = kPts.Location';
     fPts = {loc,desc};
 elseif strcmp(method,'FAST')
     kPts = detectFASTFeatures(rgb2gray(im), 'MinQuality', 3e-2,...
         'MinContrast', 3e-2, 'ROI', ROI);
     [desc,kPts] = extractFeatures(rgb2gray(im), kPts, 'Method', 'Auto',...
-        'Upright', true);
+        'Upright', false);
     loc = kPts.Location';
     fPts = {loc,desc};
 elseif strcmp(method,'BRISK')
     kPts = detectBRISKFeatures(rgb2gray(im), 'MinQuality', 6e-2, 'MinContrast',...
         6e-2, 'ROI', ROI);
     [desc,kPts] = extractFeatures(rgb2gray(im), kPts, 'Method', 'Auto',...
-        'Upright', true);
+        'Upright', false);
     loc = kPts.Location';
     fPts = {loc,desc};
     
@@ -40,15 +40,15 @@ elseif strcmp(method,'SIFT')
     loc = 2*kPts(1:2,:);
     fPts = {loc,desc'};
 elseif strcmp(method,'AKAZE')
-    d = cv.AKAZE('Threshold',1e-4);
+    d = cv.AKAZE('Threshold',2e-4);
     [kPts,desc] = d.detectAndCompute(im);
     loc = vertcat(kPts.pt)';
-    fPts = {loc,desc};
+    fPts = {loc,binaryFeatures(desc)};
 elseif strcmp(method,'ORB')
-    d = cv.ORB('MaxFeatures',1e5);
+    d = cv.ORB('MaxFeatures',1e5,'FastThreshold',16);
     [kPts,desc] = d.detectAndCompute(im);
     loc = vertcat(kPts.pt)';
-    fPts = {loc,desc};
+    fPts = {loc,binaryFeatures(desc)};
 else
     error('Unknown method')
 end

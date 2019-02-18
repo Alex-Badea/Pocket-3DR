@@ -1,5 +1,5 @@
 function [X,Colors,ScreenedX,ScreenedColors,Disparity] =...
-    RectifyAndDenseTriangulate(im1,im2,F,KP1,KP2,mode,denoiseFlag,CplotFlag)
+    RectifyAndDenseTriangulate(im1,im2,F,K,P1,P2,zRange,denoiseFlag,CplotFlag)
 %RECTIFYANDDENSETRIANGULATE Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -8,8 +8,8 @@ im1RecPlt = im1Rec;
 im2RecPlt = im2Rec;
 im1Rec(im1Rec==0) = -1;
 im2Rec(im2Rec==0) = -9999;
-KP1Rec = H1*KP1;
-KP2Rec = H2*KP2;
+KP1Rec = H1*K*P1;
+KP2Rec = H2*K*P2;
 
 pars = [];
 pars.mu = -10.6;
@@ -24,7 +24,7 @@ if exist('CplotFlag','var')
         mc12Rec = CorrsFromDisparity(Disparity);
         g = fix(linspace(1, size(mc12Rec,2), 1000));
         PlotCorrespondences(im1RecPlt, im2RecPlt, ...
-            mc12Rec(:,g), mc12Rec(:,g))
+            mc12Rec(:,g), mc12Rec(:,g));
         drawnow
     end
     if any(contains(CplotFlag, 'plotDisparityMap'))
@@ -34,7 +34,7 @@ if exist('CplotFlag','var')
     end
 end
 
-if strcmp(mode,'manual')
+if strcmp(zRange,'manual')
     h = figure('pos', [0 100 getfield(get(0,'screensize'),{3}) 300]);
     set(0,'CurrentFigure',h)
     histogram(Disparity,1000), drawnow
@@ -43,19 +43,37 @@ if strcmp(mode,'manual')
     hold on, plot([lb(1) ub(1)], [0 0], 'rx', 'LineWidth', 2), drawnow
     hold off, close(gcf)
     Disparity(Disparity<lb(1) | Disparity>ub(1)) = nan;
-elseif strcmp(mode,'auto')
+elseif strcmp(zRange,'auto')
 end
 mc12Rec = CorrsFromDisparity(Disparity);
 
 X = Triangulate(KP1Rec, KP2Rec, mc12Rec);
+if numel(zRange) == 2
+    X_ = X;
+    
+    X = Triangulate(H1*K*CANONICAL_POSE, H2*K*DehomogenizeMat(HomogenizeMat(P2)/...
+        HomogenizeMat(P1)), mc12Rec);
+    inInd = X(3,:) > zRange(1) & X(3,:) < zRange(2);
+    NotNanInd = ~isnan(Disparity);
+    NotNanAndNotBackgroundInd = false(size(Disparity));
+    NotNanAndNotBackgroundInd(NotNanInd==true) = inInd;
+    mc12Rec = mc12Rec(:,inInd);
+    Aux = nan(size(Disparity));
+    Aux(NotNanAndNotBackgroundInd) = Disparity(NotNanAndNotBackgroundInd);
+    Disparity = Aux;
+    
+    X = X_;
+    X = X(:,inInd);
+end
 
 sz = [size(im1,1) size(im1,2)];
 mc1Unr = [fix(Dehomogenize(H1\Homogenize(mc12Rec(1:2,:))));
     nan(1,size(mc12Rec,2))];
+
 Colors = bsxfun(@(x,dummy) ...
     double(permute(im1(...
-    min(abs(x(2)) + double(x(2)==0), sz(1)),...
-    min(abs(x(1)) + double(x(1)==0), sz(2)),...
+    min(max(x(2),1), sz(2)),...
+    min(max(x(1),1), sz(1)),...
     :),[3 2 1])), ...
     mc1Unr, 1:size(mc12Rec,2));
 
@@ -92,4 +110,5 @@ end
     ScreenedColors(:,:,1) = ScreenedColors1;
     ScreenedColors(:,:,2) = ScreenedColors2;
     ScreenedColors(:,:,3) = ScreenedColors3;
+
 end

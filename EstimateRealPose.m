@@ -12,6 +12,15 @@ X3 = Triangulate(CANONICAL_POSE, CP{3}, corrsNorm);
 X4 = Triangulate(CANONICAL_POSE, CP{4}, corrsNorm);
 
 [P, X] = DisambiguateCameraPose(CP, {X1, X2, X3, X4});
-P = P*[CoordSys; 0 0 0 1];
+
+%P_DEP = P*[CoordSys; 0 0 0 1];
+
+R_ = CoordSys(1:3,1:3);
+t_ = CoordSys(:,end);
+R__ = P(1:3,1:3);
+t__ = P(:,end);
+
+P = [R__*R_  R__*t_+t__];
+
 end
 

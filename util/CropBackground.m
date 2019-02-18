@@ -3,7 +3,7 @@ function [im] = CropBackground(im, foregroundPts, overcropFactor)
 %   Detailed explanation goes here
 hullInd = convhull(foregroundPts(1,:), foregroundPts(2,:));
 hull = foregroundPts(:,hullInd);
-if exist('edgeShift','var')
+if exist('overcropFactor','var')
     hull = (hull-mean(hull,2))*overcropFactor+mean(hull,2);
 end
 rp = roipoly(im, hull(1,:), hull(2,:));

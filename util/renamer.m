@@ -1,6 +1,6 @@
-imsDirName = 'haha';
-imNamesPattern = 'car*';
-newName = 'car';
+imsDirName = 'ims';
+imNamesPattern = 'IMG*';
+newName = 'bst';
 
 imsDir = dir([imsDirName '/' imNamesPattern]);
 imNames = {imsDir.name};

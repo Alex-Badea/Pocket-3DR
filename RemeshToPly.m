@@ -2,7 +2,7 @@ function RemeshToPly(plyName,X,Normals,Colors)
 %REMESHTOPLY Summary of this function goes here
 %   Detailed explanation goes here
 MakePly('in.ply',X,Normals,Colors)
-PoissonReconWrapper('in.ply', plyName, 8, feature('numcores'));
+PoissonReconWrapper('out/in.ply', ['out/' plyName], 8, feature('numcores'));
 fclose('all');
-delete('in.ply')
+delete('out/in.ply')
 end

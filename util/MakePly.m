@@ -25,12 +25,12 @@ if exist('colors','var') && ~isempty(colors)
     'property uchar green\n'...
     'property uchar blue\n'];
     format = [format '  %d %d %d'];
-    outArrays = [outArrays; colors]; 
+    outArrays = [outArrays; double(colors)]; 
 end
 header = [header 'end_header\n'];
 format = [format '\n'];
 
-h = fopen(filename,'w');
+h = fopen(['out/' filename],'w');
 fprintf(h,header);
 fprintf(h,format,outArrays);
 fclose(h);

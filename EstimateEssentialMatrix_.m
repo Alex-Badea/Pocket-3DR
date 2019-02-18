@@ -1,4 +1,4 @@
-function [ CE ] = EstimateEssentialMatrix( Cx )
+function [ CE ] = EstimateEssentialMatrix_( Cx )
 %ESTIMATEESSENTIALMATRIX Summary of this function goes here
 %   Detailed explanation goes here
 if length(Cx) ~= 5

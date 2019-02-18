@@ -1,7 +1,7 @@
-function Display3D(Cset, Rset, X)
+function Display3D(Cset, Rset, X, C)
 figure, axis equal
 if exist('X','var')
-pcshow(X','MarkerSize',50)
+pcshow(X',C','MarkerSize',50)
 end
 for i = 1 : length(Cset)
     hold on
