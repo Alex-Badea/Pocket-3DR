@@ -1,4 +1,4 @@
-# 3DReconstruction
+# Pocket 3DR
 A MATLAB implementation of a full 3D Reconstruction pipeline using the functions provided by the Czech Technical University in Prague, Faculty of Electrical Engineering.
 - Tips:
   - It is highly recommended that you calibrate for the distorsion parameters as well when dealing with high-depth background images, else reconstruction might fail;
