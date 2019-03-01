@@ -22,25 +22,31 @@ These program arguments can be found in the "Program arguments" section of the <
 
 ### Examples:
 
+The order is, for each dataset from top to bottom, the following: sparse point cloud → dense point cloud → mesh.
+
 #### cpl: 47 images
   
-<img src="https://i.ibb.co/DbTk8sS/cpl01.jpg" height="250"> <img src="https://i.ibb.co/R661gv7/cpl.gif" height="250">
-<img src="https://i.ibb.co/qNnKgQ4/cpl.jpg" width="602">
+<img src="https://i.ibb.co/7SfDcYq/MYCPLSP.png">
+<img src="https://i.ibb.co/193t82M/MYCPLDS.png">
+<img src="https://i.ibb.co/VVrGBw8/MYCPLMD.png">
 
 #### csk: 41 images
   
-<img src="https://i.ibb.co/QY63ZmV/csk01.jpg" height="250"> <img src="https://i.ibb.co/S6NmZwY/csk.gif" height="250">
-<img src="https://i.ibb.co/mCX9b9s/csk.jpg" width="602">
+<img src="https://i.ibb.co/6vrJsCX/MYCSKSP.png">
+<img src="https://i.ibb.co/Fnwjc2d/MYCSKDS.png">
+<img src="https://i.ibb.co/WWD8Kpd/MYCSKMD.png">
 
 #### mer: 51 images
   
-<img src="https://i.ibb.co/5hdjbBS/mer01.jpg" height="250"> <img src="https://i.ibb.co/dtRPDxV/mer.gif" height="250">
-<img src="https://i.ibb.co/ys26mnk/mer.jpg" width="602">
+<img src="https://i.ibb.co/RjxsRJ1/MYMERSP.png">
+<img src="https://i.ibb.co/fM3mZ56/MYMERDS.png">
+<img src="https://i.ibb.co/gt2rpDz/MYMERMD.png">
 
-#### car: 43 images (FAIL)
+#### car: 43 images
 
-<img src="https://i.ibb.co/NjTXcbj/car01.jpg" height="250"> <img src="https://i.ibb.co/1MzvQKd/car.gif" height="250">
-<img src="https://i.ibb.co/bmMHHcr/car.jpg" width="602">
+<img src="https://i.ibb.co/ns3kg32/MYCARSP.png">
+<img src="https://i.ibb.co/2h0TLQd/MYCARDS.png">
+<img src="https://i.ibb.co/GnFjVvC/MYCARMD.png">
 
 ```diff
 + Dense reconstruction from 2 images
