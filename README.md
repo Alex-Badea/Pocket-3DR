@@ -20,6 +20,8 @@ The program arguments are the following:
 
 These program arguments can be found in the "Program arguments" section of the <strong>main.m</strong> script. Technically, this is the only section you should adjust to suit your needs, the rest is implementation detail.If you had to modify some parameters other than those in the "Program arguments" section in order for the reconstruction to work, please <strong>open an issue</strong>!
 
+### Examples:
+
 #### cpl: 47 images
   
 <img src="https://i.ibb.co/DbTk8sS/cpl01.jpg" height="250"> <img src="https://i.ibb.co/R661gv7/cpl.gif" height="250">
