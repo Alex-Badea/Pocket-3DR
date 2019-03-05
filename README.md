@@ -18,7 +18,7 @@ The program arguments are the following:
 
 <strong>threads</strong>: if different than 1, will summon that number of MATLAB workers to parallelize all for loops that can run non-deterministically.
 
-These program arguments can be found in the "Program arguments" section of the <strong>main.m</strong> script. Technically, this is the only section you should adjust to suit your needs, the rest is implementation detail.If you had to modify some parameters other than those in the "Program arguments" section in order for the reconstruction to work, please <strong>open an issue</strong>!
+These program arguments can be found in the "Program arguments" section of the <strong>main.m</strong> script. Technically, this is the only section you should adjust to suit your needs, the rest is implementation detail. If you had to modify some parameters other than those in the "Program arguments" section in order for the reconstruction to work, please <strong>open an issue</strong>!
 
 ### Examples:
 
