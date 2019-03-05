@@ -11,7 +11,7 @@ cameraPars = estimateCameraParameters(imPts, dummyPts, ...
 K = cameraPars.IntrinsicMatrix';
 d = cameraPars.RadialDistortion;
 
-if size(ims.Files,1) ~= size(imPts,2)
+if size(ims.Files,1) ~= size(imPts,3)
     error('Error detecting checkerboard pattern in all images')
 end
 
