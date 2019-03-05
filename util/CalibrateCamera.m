@@ -7,7 +7,7 @@ ims = imageDatastore(calibImgDir);
 sqSz = 32;
 dummyPts = generateCheckerboardPoints(boardSz, sqSz);
 cameraPars = estimateCameraParameters(imPts, dummyPts, ...
-    'NumRadialDistortionCoefficients', 3);
+    'NumRadialDistortionCoefficients', 2);
 K = cameraPars.IntrinsicMatrix';
 d = cameraPars.RadialDistortion;
 
